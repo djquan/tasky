@@ -1,3 +1,15 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  /* Custom dark mode colors */
+  --color-dark-bg: #1C1C1E;
+  --color-dark-surface: #2C2C2E;
+  --color-dark-hover: #3A3A3C;
+  --color-dark-border: #3A3A3C;
+
+  /* Custom light mode colors */
+  --color-light-bg: #F2F2F7;
+  --color-light-surface: #FFFFFF;
+  --color-light-hover: #E5E5EA;
+  --color-light-border: #D1D1D6;
+}
