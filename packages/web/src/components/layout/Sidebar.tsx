@@ -52,7 +52,7 @@ function SortableListItem({ list, level, currentView, contextId, setView, isOver
   };
 
   const isActive = (currentView === 'project' && contextId === list.id) ||
-                   (currentView === 'area' && contextId === list.id);
+    (currentView === 'area' && contextId === list.id);
 
   const icon = list.type === 'project' ? '📁' : '🗂️';
   const viewType = list.type === 'project' ? 'project' : 'area';
@@ -65,17 +65,15 @@ function SortableListItem({ list, level, currentView, contextId, setView, isOver
     >
       <button
         onClick={() => setView(viewType, list.id)}
-        className={`w-full text-left px-2 py-1 rounded text-sm transition-colors flex items-center gap-2 cursor-grab active:cursor-grabbing ${
-          level === 0 && list.type === 'area' ? 'font-medium' : ''
-        } ${
-          isActive
+        className={`w-full text-left px-2 py-1 rounded text-sm transition-colors flex items-center gap-2 cursor-grab active:cursor-grabbing ${level === 0 && list.type === 'area' ? 'font-medium' : ''
+          } ${isActive
             ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
             : isOver
-            ? 'bg-blue-100 dark:bg-blue-900/50 ring-2 ring-blue-400 dark:ring-blue-500 ring-inset'
-            : list.type === 'area'
-            ? 'text-gray-700 dark:text-gray-200 hover:bg-light-hover dark:hover:bg-dark-hover'
-            : 'text-gray-600 dark:text-gray-300 hover:bg-light-hover dark:hover:bg-dark-hover'
-        }`}
+              ? 'bg-blue-100 dark:bg-blue-900/50 ring-2 ring-blue-400 dark:ring-blue-500 ring-inset'
+              : list.type === 'area'
+                ? 'text-gray-700 dark:text-gray-200 hover:bg-light-hover dark:hover:bg-dark-hover'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-light-hover dark:hover:bg-dark-hover'
+          }`}
         {...attributes}
         {...listeners}
       >
@@ -94,11 +92,10 @@ function BottomDropZone({ draggedItem }: { draggedItem: { list: List; level: num
   return (
     <div
       ref={setNodeRef}
-      className={`h-4 transition-colors ${
-        isOver && draggedItem
+      className={`h-4 transition-colors ${isOver && draggedItem
           ? 'bg-blue-200 dark:bg-blue-800 border-t-2 border-blue-400 dark:border-blue-600'
           : 'bg-transparent'
-      }`}
+        }`}
     />
   );
 }
