@@ -98,7 +98,6 @@ export function getInboxTasks(): Task[] {
  */
 export function getTodayTasks(): Task[] {
   const tasks = getAllTasks();
-  const today = getToday();
 
   return tasks
     .filter(task => {
@@ -343,7 +342,6 @@ export const getCompletedProjects = () => getCompletedLists('project');
  */
 export function getSmartListCounts() {
   const tasks = getAllTasks();
-  const today = getToday();
   const tomorrow = getTomorrow();
 
   const counts = {

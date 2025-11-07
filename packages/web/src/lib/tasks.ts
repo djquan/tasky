@@ -170,9 +170,6 @@ function addToSortOrder(task: Task): void {
   } else {
     // Add to appropriate when-based sort order
     switch (task.when) {
-      case 'inbox':
-        inboxSortOrder.push([id]);
-        break;
       case 'today':
       case 'evening':
         todaySortOrder.push([id]);
@@ -229,9 +226,6 @@ export function reorderTask(id: string, newIndex: number): void {
     // Handle when-based reordering
     let yjsArray;
     switch (task.when) {
-      case 'inbox':
-        yjsArray = inboxSortOrder;
-        break;
       case 'today':
       case 'evening':
         yjsArray = todaySortOrder;

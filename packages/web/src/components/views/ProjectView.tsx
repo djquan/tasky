@@ -11,7 +11,7 @@ import type { Task } from '@tasky/shared';
 export function ProjectView() {
   const { contextId } = useNavigation();
   const { project, isLoading: projectLoading } = useProject(contextId);
-  const { headings, isLoading: headingsLoading } = useHeadings(contextId);
+  const { headings } = useHeadings(contextId);
   const { tasks, isLoading: tasksLoading } = useProjectTasks(contextId || '');
   const [newHeadingTitle, setNewHeadingTitle] = useState('');
   const [showNewHeading, setShowNewHeading] = useState(false);
