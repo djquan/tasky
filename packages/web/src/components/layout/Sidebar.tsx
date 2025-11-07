@@ -109,7 +109,11 @@ export function Sidebar() {
   const [overId, setOverId] = useState<string | null>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Require 8px of movement before drag starts
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
