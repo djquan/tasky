@@ -20,4 +20,4 @@ globalThis.indexedDB = {
     },
   }),
   deleteDatabase: () => ({ onsuccess: null, onerror: null }),
-} as any;
+} as unknown as IDBFactory;

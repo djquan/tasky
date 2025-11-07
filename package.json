@@ -10,7 +10,9 @@
     "type-check": "pnpm -r type-check",
     "test": "pnpm -r test",
     "test:coverage": "pnpm -r test:coverage",
-    "test:ui": "pnpm --filter web test:ui"
+    "test:ui": "pnpm --filter web test:ui",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "keywords": [
     "todo",
@@ -24,7 +26,13 @@
   },
   "packageManager": "pnpm@8.15.0",
   "devDependencies": {
+    "@types/node": "^24.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.3",
+    "@typescript-eslint/parser": "^8.46.3",
     "@vitest/ui": "^4.0.7",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
     "vitest": "^4.0.7"
   }
 }
