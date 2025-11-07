@@ -5,8 +5,6 @@
  * No authentication required (single-user setup).
  */
 
-/* eslint-env node */
-
 import http from 'http';
 import { DocumentManager } from '@y-sweet/sdk';
 
