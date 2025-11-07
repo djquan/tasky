@@ -1,10 +1,17 @@
 import { generateId, now, type Heading, type HeadingInput } from '@tasky/shared';
 import { headingsMap } from './yjs';
+import { undoManager } from './undo';
+import {
+  CreateHeadingCommand,
+  UpdateHeadingCommand,
+  DeleteHeadingCommand,
+  ArchiveHeadingCommand
+} from './undo/commands/heading';
 
 /**
- * Create a new heading
+ * Internal implementation - create heading without undo tracking
  */
-export function createHeading(input: Partial<HeadingInput>): Heading {
+function _createHeadingInternal(input: Partial<HeadingInput>): Heading {
   const id = generateId();
   const timestamp = now();
 
@@ -20,6 +27,32 @@ export function createHeading(input: Partial<HeadingInput>): Heading {
 
   headingsMap.set(id, heading);
 
+  return heading;
+}
+
+/**
+ * Create a new heading
+ */
+export function createHeading(input: Partial<HeadingInput>): Heading {
+  if (undoManager.getIsUndoing() || undoManager.getIsRedoing()) {
+    return _createHeadingInternal(input);
+  }
+
+  // Create heading object but don't add to map yet - command will do that
+  const id = generateId();
+  const timestamp = now();
+  const heading: Heading = {
+    id,
+    title: input.title || '',
+    listId: input.listId || '',
+    archived: input.archived || false,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    sortOrder: input.sortOrder || timestamp
+  };
+
+  const command = new CreateHeadingCommand(heading);
+  undoManager.execute(command);
   return heading;
 }
 
@@ -44,9 +77,9 @@ export function getListHeadings(listId: string): Heading[] {
 export const getProjectHeadings = getListHeadings;
 
 /**
- * Update a heading
+ * Internal implementation - update heading without undo tracking
  */
-export function updateHeading(id: string, updates: Partial<Heading>): void {
+function _updateHeadingInternal(id: string, updates: Partial<Heading>): void {
   const heading = headingsMap.get(id);
   if (!heading) {
     console.warn(`[updateHeading] Heading not found: ${id}`);
@@ -63,19 +96,55 @@ export function updateHeading(id: string, updates: Partial<Heading>): void {
 }
 
 /**
- * Delete a heading
+ * Update a heading
  */
-export function deleteHeading(id: string): void {
-  headingsMap.delete(id);
+export function updateHeading(id: string, updates: Partial<Heading>): void {
+  const heading = headingsMap.get(id);
+  if (!heading) {
+    console.warn(`[updateHeading] Heading not found: ${id}`);
+    return;
+  }
 
-  // Note: Tasks with this headingId will need to be updated
-  // by the caller to set headingId to null
+  if (undoManager.getIsUndoing() || undoManager.getIsRedoing()) {
+    _updateHeadingInternal(id, updates);
+    return;
+  }
+
+  const oldHeading = { ...heading };
+  const command = new UpdateHeadingCommand(oldHeading, updates);
+  undoManager.execute(command);
 }
 
 /**
- * Archive a heading
+ * Internal implementation - delete heading without undo tracking
  */
-export function archiveHeading(id: string): void {
+function _deleteHeadingInternal(id: string): void {
+  headingsMap.delete(id);
+}
+
+/**
+ * Delete a heading
+ */
+export function deleteHeading(id: string): void {
+  const heading = headingsMap.get(id);
+  if (!heading) {
+    console.warn(`[deleteHeading] Heading not found: ${id}`);
+    return;
+  }
+
+  if (undoManager.getIsUndoing() || undoManager.getIsRedoing()) {
+    _deleteHeadingInternal(id);
+    return;
+  }
+
+  const command = new DeleteHeadingCommand(heading);
+  undoManager.execute(command);
+}
+
+/**
+ * Internal implementation - archive heading without undo tracking
+ */
+function _archiveHeadingInternal(id: string): void {
   const heading = headingsMap.get(id);
   if (!heading) {
     console.warn(`[archiveHeading] Heading not found: ${id}`);
@@ -89,4 +158,23 @@ export function archiveHeading(id: string): void {
   };
 
   headingsMap.set(id, updated);
+}
+
+/**
+ * Archive a heading
+ */
+export function archiveHeading(id: string): void {
+  const heading = headingsMap.get(id);
+  if (!heading) {
+    console.warn(`[archiveHeading] Heading not found: ${id}`);
+    return;
+  }
+
+  if (undoManager.getIsUndoing() || undoManager.getIsRedoing()) {
+    _archiveHeadingInternal(id);
+    return;
+  }
+
+  const command = new ArchiveHeadingCommand(heading);
+  undoManager.execute(command);
 }

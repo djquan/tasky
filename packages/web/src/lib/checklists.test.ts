@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ChecklistItem, ChecklistItemInput } from '@tasky/shared';
 import * as checklists from './checklists';
+import { undoManager } from './undo';
 
 // Mock yjs module
 const mockChecklistItemsMap = new Map<string, ChecklistItem>();
@@ -170,6 +171,83 @@ describe('checklists.ts', () => {
       
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Checklist item not found'));
       consoleSpy.mockRestore();
+    });
+  });
+
+  describe('undo/redo integration', () => {
+    beforeEach(() => {
+      while (undoManager.canUndo()) {
+        undoManager.undo();
+      }
+      while (undoManager.canRedo()) {
+        undoManager.redo();
+      }
+      undoManager.clearRedo();
+    });
+
+    it('should undo checklist item creation', () => {
+      const item = checklists.createChecklistItem({ taskId: 'task-1', title: 'Test Item' });
+      expect(checklists.getChecklistItem(item.id)).toBeDefined();
+      expect(undoManager.canUndo()).toBe(true);
+
+      undoManager.undo();
+      expect(checklists.getChecklistItem(item.id)).toBeUndefined();
+      expect(undoManager.canRedo()).toBe(true);
+    });
+
+    it('should undo checklist item update', () => {
+      const item = checklists.createChecklistItem({ taskId: 'task-1', title: 'Original' });
+      checklists.updateChecklistItem(item.id, { title: 'Updated' });
+      expect(checklists.getChecklistItem(item.id)?.title).toBe('Updated');
+
+      undoManager.undo();
+      expect(checklists.getChecklistItem(item.id)?.title).toBe('Original');
+    });
+
+    it('should undo checklist item deletion', () => {
+      const item = checklists.createChecklistItem({ taskId: 'task-1', title: 'Test Item' });
+      checklists.deleteChecklistItem(item.id);
+      expect(checklists.getChecklistItem(item.id)).toBeUndefined();
+
+      undoManager.undo();
+      expect(checklists.getChecklistItem(item.id)).toBeDefined();
+      expect(checklists.getChecklistItem(item.id)?.title).toBe('Test Item');
+    });
+
+    it('should undo checklist item toggle', () => {
+      const item = checklists.createChecklistItem({ taskId: 'task-1', completed: false });
+      checklists.toggleChecklistItem(item.id);
+      expect(checklists.getChecklistItem(item.id)?.completed).toBe(true);
+
+      undoManager.undo();
+      expect(checklists.getChecklistItem(item.id)?.completed).toBe(false);
+    });
+
+    it('should handle undo when item not found during update', () => {
+      const item = checklists.createChecklistItem({ taskId: 'task-1', title: 'Original' });
+      checklists.updateChecklistItem(item.id, { title: 'Updated' });
+      undoManager.undo();
+      
+      // Item should be restored
+      expect(checklists.getChecklistItem(item.id)?.title).toBe('Original');
+    });
+
+    it('should handle undo when item not found during toggle', () => {
+      const item = checklists.createChecklistItem({ taskId: 'task-1', completed: false });
+      checklists.toggleChecklistItem(item.id);
+      undoManager.undo();
+      
+      // Item should be restored
+      expect(checklists.getChecklistItem(item.id)?.completed).toBe(false);
+    });
+
+    it('should handle undo when item not found during delete', () => {
+      const item = checklists.createChecklistItem({ taskId: 'task-1', title: 'Test' });
+      checklists.deleteChecklistItem(item.id);
+      undoManager.undo();
+      
+      // Item should be restored
+      expect(checklists.getChecklistItem(item.id)).toBeDefined();
     });
   });
 });

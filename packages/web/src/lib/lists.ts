@@ -1,10 +1,50 @@
 import { generateId, now, type List, type ListInput, type ListType } from '@tasky/shared';
 import { listsMap, listsSortOrder, listTaskSortOrders, getAllLists } from './yjs';
+import { undoManager } from './undo';
+import {
+  CreateListCommand,
+  UpdateListCommand,
+  DeleteListCommand,
+  MoveListInSortOrderCommand,
+  MoveListToAreaCommand
+} from './undo/commands/list';
 
 /**
- * Create a new list (project or area)
+ * Calculate the insert index for a new list without actually inserting
  */
-export function createList(input: Partial<ListInput>): List {
+function calculateListInsertIndex(parentListId: string | null | undefined): number {
+  if (parentListId) {
+    // Insert after parent area
+    const parentIndex = listsSortOrder.toArray().indexOf(parentListId);
+    if (parentIndex !== -1) {
+      // Find the position after the parent and all its current children
+      const sortArray = listsSortOrder.toArray();
+      let insertIndex = parentIndex + 1;
+
+      for (let i = parentIndex + 1; i < sortArray.length; i++) {
+        const item = listsMap.get(sortArray[i]);
+        if (item && item.parentListId === parentListId) {
+          insertIndex = i + 1;
+        } else {
+          break;
+        }
+      }
+
+      return insertIndex;
+    } else {
+      // Parent not found in sort order, append
+      return listsSortOrder.length;
+    }
+  } else {
+    // Top-level item - append to end
+    return listsSortOrder.length;
+  }
+}
+
+/**
+ * Internal implementation - create list without undo tracking
+ */
+function _createListInternal(input: Partial<ListInput>): { list: List; insertIndex: number } {
   const id = generateId();
   const timestamp = now();
 
@@ -29,36 +69,56 @@ export function createList(input: Partial<ListInput>): List {
   listsMap.set(id, list);
 
   // Insert into sort order at appropriate position
+  const insertIndex = calculateListInsertIndex(input.parentListId);
   if (input.parentListId) {
-    // Insert after parent area
     const parentIndex = listsSortOrder.toArray().indexOf(input.parentListId);
     if (parentIndex !== -1) {
-      // Find the position after the parent and all its current children
-      const sortArray = listsSortOrder.toArray();
-      let insertIndex = parentIndex + 1;
-
-      for (let i = parentIndex + 1; i < sortArray.length; i++) {
-        const item = listsMap.get(sortArray[i]);
-        if (item && item.parentListId === input.parentListId) {
-          insertIndex = i + 1;
-        } else {
-          break;
-        }
-      }
-
       listsSortOrder.insert(insertIndex, [id]);
     } else {
-      // Parent not found in sort order, append
       listsSortOrder.push([id]);
     }
   } else {
-    // Top-level item - append to end
     listsSortOrder.push([id]);
   }
 
   // Initialize empty task sort order for this list
   listTaskSortOrders.set(id, []);
 
+  return { list, insertIndex };
+}
+
+/**
+ * Create a new list (project or area)
+ */
+export function createList(input: Partial<ListInput>): List {
+  if (undoManager.getIsUndoing() || undoManager.getIsRedoing()) {
+    return _createListInternal(input).list;
+  }
+
+  // Create list object but don't add to map yet - command will do that
+  const id = generateId();
+  const timestamp = now();
+  const list: List = {
+    id,
+    type: input.type || 'project',
+    title: input.title || '',
+    notes: input.notes || '',
+    when: input.when || 'anytime',
+    scheduledDate: input.scheduledDate ?? null,
+    deadline: input.deadline ?? null,
+    parentListId: input.parentListId ?? null,
+    tags: input.tags || [],
+    completed: input.completed || false,
+    canceled: input.canceled || false,
+    createdAt: timestamp,
+    completedAt: null,
+    updatedAt: timestamp,
+    sortOrder: input.sortOrder || timestamp
+  };
+
+  const insertIndex = calculateListInsertIndex(input.parentListId);
+  const command = new CreateListCommand(list, insertIndex);
+  undoManager.execute(command);
   return list;
 }
 
@@ -70,9 +130,9 @@ export function getList(id: string): List | undefined {
 }
 
 /**
- * Update a list
+ * Internal implementation - update list without undo tracking
  */
-export function updateList(id: string, updates: Partial<List>): void {
+function _updateListInternal(id: string, updates: Partial<List>): void {
   const list = listsMap.get(id);
   if (!list) {
     console.warn(`[updateList] List not found: ${id}`);
@@ -89,14 +149,34 @@ export function updateList(id: string, updates: Partial<List>): void {
 
   // If parentListId changed, update sort order
   if (updates.parentListId !== undefined && updates.parentListId !== list.parentListId) {
-    moveListToArea(id, updates.parentListId);
+    _moveListToAreaInternal(id, updates.parentListId);
   }
 }
 
 /**
- * Delete a list and all its tasks
+ * Update a list
  */
-export function deleteList(id: string): void {
+export function updateList(id: string, updates: Partial<List>): void {
+  const list = listsMap.get(id);
+  if (!list) {
+    console.warn(`[updateList] List not found: ${id}`);
+    return;
+  }
+
+  if (undoManager.getIsUndoing() || undoManager.getIsRedoing()) {
+    _updateListInternal(id, updates);
+    return;
+  }
+
+  const oldList = { ...list };
+  const command = new UpdateListCommand(oldList, updates);
+  undoManager.execute(command);
+}
+
+/**
+ * Internal implementation - delete list without undo tracking
+ */
+function _deleteListInternal(id: string): void {
   const list = listsMap.get(id);
   if (!list) {
     console.warn(`[deleteList] List not found: ${id}`);
@@ -111,9 +191,25 @@ export function deleteList(id: string): void {
 
   // Delete the list
   listsMap.delete(id);
+}
 
-  // Note: Tasks with this listId will need to be handled separately
-  // by the caller (either deleted or moved to inbox)
+/**
+ * Delete a list and all its tasks
+ */
+export function deleteList(id: string): void {
+  const list = listsMap.get(id);
+  if (!list) {
+    console.warn(`[deleteList] List not found: ${id}`);
+    return;
+  }
+
+  if (undoManager.getIsUndoing() || undoManager.getIsRedoing()) {
+    _deleteListInternal(id);
+    return;
+  }
+
+  const command = new DeleteListCommand(list);
+  undoManager.execute(command);
 }
 
 /**
@@ -238,11 +334,9 @@ function getListSortIndex(listId: string): number {
 }
 
 /**
- * Move a list to a new position in the sort order array
- * @param listId - ID of the list to move
- * @param newIndex - Target index in the sort order array (before removal)
+ * Internal implementation - move list in sort order without undo tracking
  */
-export function moveListInSortOrder(listId: string, newIndex: number): void {
+function _moveListInSortOrderInternal(listId: string, newIndex: number): void {
   const currentIndex = getListSortIndex(listId);
   if (currentIndex === -1) {
     console.warn(`[moveListInSortOrder] List not found in sort order: ${listId}`);
@@ -258,19 +352,10 @@ export function moveListInSortOrder(listId: string, newIndex: number): void {
   listsSortOrder.delete(currentIndex, 1);
 
   // Calculate adjusted index after removal
-  // newIndex is the desired position BEFORE removal
-  // After removal, indices shift:
-  // - Items after currentIndex shift down by 1
-  // - Items at/before currentIndex stay the same
   let adjustedIndex: number;
   if (currentIndex < newIndex) {
-    // Dragging down: newIndex was after currentIndex
-    // After removal, newIndex becomes newIndex - 1
-    // But if newIndex was "insert after target", we still want that position
     adjustedIndex = newIndex - 1;
   } else {
-    // Dragging up: newIndex was before currentIndex
-    // After removal, newIndex stays the same
     adjustedIndex = newIndex;
   }
 
@@ -283,12 +368,38 @@ export function moveListInSortOrder(listId: string, newIndex: number): void {
 }
 
 /**
- * Move a project into an area (update parentListId and reposition in sort array)
+ * Move a list to a new position in the sort order array
  * @param listId - ID of the list to move
- * @param areaId - ID of the area to move into, or null to move to top level
- * @param targetIndex - Optional target index in sortedLists for positioning (used when un-nesting)
+ * @param newIndex - Target index in the sort order array (before removal)
  */
-export function moveListToArea(listId: string, areaId: string | null, targetIndex?: number): void {
+export function moveListInSortOrder(listId: string, newIndex: number): void {
+  const currentIndex = getListSortIndex(listId);
+  if (currentIndex === -1) {
+    console.warn(`[moveListInSortOrder] List not found in sort order: ${listId}`);
+    return;
+  }
+
+  if (currentIndex === newIndex) {
+    return;
+  }
+
+  if (undoManager.getIsUndoing() || undoManager.getIsRedoing()) {
+    _moveListInSortOrderInternal(listId, newIndex);
+    return;
+  }
+
+  try {
+    const command = new MoveListInSortOrderCommand(listId, newIndex);
+    undoManager.execute(command);
+  } catch (error) {
+    _moveListInSortOrderInternal(listId, newIndex);
+  }
+}
+
+/**
+ * Internal implementation - move list to area without undo tracking
+ */
+function _moveListToAreaInternal(listId: string, areaId: string | null, targetIndex?: number): void {
   const list = listsMap.get(listId);
   if (!list) {
     console.warn(`[moveListToArea] List not found: ${listId}`);
@@ -394,6 +505,28 @@ export function moveListToArea(listId: string, areaId: string | null, targetInde
     const adjustedIndex = currentIndex < insertIndex ? insertIndex - 1 : insertIndex;
     listsSortOrder.insert(adjustedIndex, [listId]);
   }
+}
+
+/**
+ * Move a project into an area (update parentListId and reposition in sort array)
+ * @param listId - ID of the list to move
+ * @param areaId - ID of the area to move into, or null to move to top level
+ * @param targetIndex - Optional target index in sortedLists for positioning (used when un-nesting)
+ */
+export function moveListToArea(listId: string, areaId: string | null, targetIndex?: number): void {
+  const list = listsMap.get(listId);
+  if (!list) {
+    console.warn(`[moveListToArea] List not found: ${listId}`);
+    return;
+  }
+
+  if (undoManager.getIsUndoing() || undoManager.getIsRedoing()) {
+    _moveListToAreaInternal(listId, areaId, targetIndex);
+    return;
+  }
+
+  const command = new MoveListToAreaCommand(listId, areaId);
+  undoManager.execute(command);
 }
 
 /**
