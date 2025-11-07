@@ -425,10 +425,10 @@ describe('lists.ts', () => {
       const list1 = lists.createList({ title: 'List 1' });
       const list2 = lists.createList({ title: 'List 2' });
       const list3 = lists.createList({ title: 'List 3' });
-      
+
       const originalOrder = mockListsSortOrder.slice();
       const originalIndex = originalOrder.indexOf(list3.id);
-      
+
       // Only test if list3 is not already at the target position
       if (originalIndex !== 0 && originalIndex !== 1) {
         const targetIndex = 0;
@@ -454,7 +454,7 @@ describe('lists.ts', () => {
       const list = lists.createList({ title: 'Original' });
       lists.updateList(list.id, { title: 'Updated' });
       undoManager.undo();
-      
+
       expect(lists.getList(list.id)?.title).toBe('Original');
     });
 
@@ -462,16 +462,16 @@ describe('lists.ts', () => {
       const list = lists.createList({ title: 'Test List' });
       lists.deleteList(list.id);
       undoManager.undo();
-      
+
       expect(lists.getList(list.id)).toBeDefined();
     });
 
     it('should handle undo of moveListToArea with invalid area', () => {
       const area = lists.createList({ type: 'area', title: 'Area' });
       const project = lists.createList({ title: 'Project' });
-      
+
       // Try to move area into another area (should fail)
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
       lists.moveListToArea(area.id, project.id);
       // Note: The warning happens in _moveListToAreaInternal, which is called during undo/redo
       // So we test the undo path which exercises the internal function
@@ -484,10 +484,10 @@ describe('lists.ts', () => {
     it('should handle undo of moveListToArea with circular reference', () => {
       const area1 = lists.createList({ type: 'area', title: 'Area 1' });
       const area2 = lists.createList({ type: 'area', title: 'Area 2', parentListId: area1.id });
-      
+
       // Try to move area1 into area2 (circular reference)
       // This will be caught during undo when _moveListToAreaInternal is called
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
       lists.moveListToArea(area1.id, area2.id);
       // The warning happens in internal function, test undo to exercise it
       undoManager.undo();
