@@ -175,13 +175,9 @@ function addToSortOrder(task: Task): void {
         todaySortOrder.push([id]);
         break;
       case 'anytime':
-        // Inbox: tasks with no list, no dates, when='anytime'
-        if (!task.scheduledDate && !task.deadline) {
-          inboxSortOrder.push([id]);
-        } else {
-          // Has dates but no list - shouldn't happen in normal flow, but handle it
-          anytimeSortOrder.push([id]);
-        }
+        // All anytime tasks without listId go to anytimeSortOrder
+        // The distinction between inbox and anytime views is handled by filter functions
+        anytimeSortOrder.push([id]);
         break;
       case 'someday':
         somedaySortOrder.push([id]);
