@@ -466,11 +466,11 @@ describe('tasks.ts', () => {
     });
 
     it('should clear redo stack when new operation occurs', () => {
-      const task1 = tasks.createTask({ title: 'Task 1' });
+      tasks.createTask({ title: 'Task 1' });
       undoManager.undo();
       expect(undoManager.canRedo()).toBe(true);
 
-      const task2 = tasks.createTask({ title: 'Task 2' });
+      tasks.createTask({ title: 'Task 2' });
       expect(undoManager.canRedo()).toBe(false);
       expect(undoManager.canUndo()).toBe(true);
     });
