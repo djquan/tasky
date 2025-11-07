@@ -1,13 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTask, useProjects, useAreas } from '../../hooks/useEntities';
 import { useNavigation } from '../../store/navigation';
-import { updateTask, deleteTask, toggleTask } from '../../lib/tasks';
+import { updateTask, cancelTask, toggleTask } from '../../lib/tasks';
 import { WhenPicker } from '../pickers/WhenPicker';
 import { ProjectAreaPicker } from '../pickers/ProjectAreaPicker';
 import type { WhenValue } from '@tasky/shared';
 
 export function TaskDetail() {
-  const { selectedTaskId, selectTask } = useNavigation();
+  const { selectedTaskIds, closeTaskDetail } = useNavigation();
+  const selectedTaskId = selectedTaskIds.size === 1 ? Array.from(selectedTaskIds)[0] : null;
   const { task } = useTask(selectedTaskId);
   const { projects } = useProjects();
   const { areas } = useAreas();
@@ -129,7 +130,7 @@ export function TaskDetail() {
   const whenDisplay = getWhenDisplay();
 
   const handleClose = () => {
-    selectTask(null);
+    closeTaskDetail();
   };
 
   const handleSave = () => {
@@ -159,7 +160,12 @@ export function TaskDetail() {
   };
 
   const handleDeleteTask = () => {
-    deleteTask(task.id);
+    cancelTask(task.id);
+    handleClose();
+  };
+
+  const handleRestoreTask = () => {
+    updateTask(task.id, { canceled: false, completedAt: null });
     handleClose();
   };
 
@@ -171,18 +177,19 @@ export function TaskDetail() {
     <>
       {/* Overlay */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-30 dark:bg-opacity-60 z-50 flex items-start justify-center pt-32"
+        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-start justify-center pt-20"
         onClick={handleClose}
       >
         {/* Detail Modal */}
         <div
-          className="w-full max-w-2xl bg-light-surface dark:bg-dark-surface rounded-lg shadow-2xl"
+          data-task-detail
+          className="w-full max-w-lg bg-light-surface dark:bg-dark-surface rounded-lg shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Main Content */}
-          <div className="p-6">
+          <div className="p-4">
             {/* Task Title with Checkbox */}
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex items-center gap-3 mb-2">
               <button
                 type="button"
                 onClick={handleToggleComplete}
@@ -217,8 +224,8 @@ export function TaskDetail() {
             </div>
 
             {/* Notes */}
-            <div className="mb-4">
-              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Notes</label>
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Notes</label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -327,14 +334,24 @@ export function TaskDetail() {
           </div>
 
           {/* Actions */}
-          <div className="px-6 py-4 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={handleDeleteTask}
-              className="text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-            >
-              Delete
-            </button>
+          <div className="px-4 py-3 flex items-center justify-between">
+            {task.canceled ? (
+              <button
+                type="button"
+                onClick={handleRestoreTask}
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                Restore
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleDeleteTask}
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+              >
+                Delete
+              </button>
+            )}
             <div className="flex gap-2">
               <button
                 type="button"

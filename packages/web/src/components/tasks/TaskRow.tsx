@@ -5,18 +5,44 @@ import type { Task } from '@tasky/shared';
 
 interface TaskRowProps {
   task: Task;
+  allTaskIds: string[];
 }
 
-export function TaskRow({ task }: TaskRowProps) {
-  const { selectTask, currentView, selectedTaskId } = useNavigation();
+export function TaskRow({ task, allTaskIds }: TaskRowProps) {
+  const { selectTask, toggleTaskSelection, selectTaskRange, openTaskDetail, currentView, selectedTaskIds } = useNavigation();
   const { tags } = useTags();
 
   const taskTags = tags.filter(t => task.tags.includes(t.id));
-  const isSelected = selectedTaskId === task.id;
+  const isSelected = selectedTaskIds.has(task.id);
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     toggleTask(task.id);
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    const isMetaKey = isMac ? e.metaKey : e.ctrlKey;
+    const isShiftKey = e.shiftKey;
+
+    if (isMetaKey) {
+      // Cmd/Ctrl+click: toggle selection
+      e.preventDefault();
+      toggleTaskSelection(task.id);
+    } else if (isShiftKey) {
+      // Shift+click: select range
+      e.preventDefault();
+      selectTaskRange(task.id, allTaskIds);
+    } else {
+      // Regular click: single select or open detail
+      if (isSelected && selectedTaskIds.size === 1) {
+        // Second click on already selected task - open detail popup
+        openTaskDetail();
+      } else {
+        // First click - select the task
+        selectTask(task.id);
+      }
+    }
   };
 
   const formatDeadline = (timestamp: number) => {
@@ -50,8 +76,8 @@ export function TaskRow({ task }: TaskRowProps) {
   };
 
   const getWhenDisplay = () => {
-    // Don't show when info on Today or Upcoming screens - it's redundant
-    if (currentView === 'today' || currentView === 'upcoming') {
+    // Don't show when info on Today, Upcoming, or Someday screens - it's redundant
+    if (currentView === 'today' || currentView === 'upcoming' || currentView === 'someday') {
       return null;
     }
 
@@ -84,7 +110,8 @@ export function TaskRow({ task }: TaskRowProps) {
 
   return (
     <div
-      onClick={() => selectTask(task.id)}
+      data-task-row
+      onClick={handleClick}
       className={`flex items-start gap-3 py-2 px-1 rounded-lg transition-colors cursor-pointer ${isSelected
         ? 'bg-blue-600 dark:bg-blue-700'
         : 'hover:bg-gray-100 dark:hover:bg-gray-800'
@@ -142,7 +169,7 @@ export function TaskRow({ task }: TaskRowProps) {
           </p>
         )}
 
-        {/* When info - only show if not on Today/Upcoming */}
+        {/* When info - only show if not on Today/Upcoming/Someday */}
         {whenDisplay && (
           <div className={`flex items-center gap-1.5 mt-1 ${isSelected
             ? 'text-blue-100'

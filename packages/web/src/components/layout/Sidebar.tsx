@@ -109,7 +109,11 @@ export function Sidebar() {
   const [overId, setOverId] = useState<string | null>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Require 8px of movement before drag starts
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -397,7 +401,7 @@ export function Sidebar() {
                 <span>{icon}</span>
                 <span>{label}</span>
               </span>
-              {count > 0 && view !== 'anytime' && view !== 'upcoming' && (
+              {count > 0 && view !== 'anytime' && view !== 'upcoming' && view !== 'someday' && (
                 <span className="text-xs px-2 py-0.5 rounded-full bg-light-hover dark:bg-dark-hover text-gray-600 dark:text-gray-400">
                   {count}
                 </span>
@@ -436,11 +440,6 @@ export function Sidebar() {
               <span>🗑️</span>
               <span>Trash</span>
             </span>
-            {counts.trash > 0 && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-light-hover dark:bg-dark-hover text-gray-600 dark:text-gray-400">
-                {counts.trash}
-              </span>
-            )}
           </button>
         </div>
       </nav>

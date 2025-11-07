@@ -105,6 +105,7 @@ Root `tsconfig.json` shared by all packages. Each package extends with specific 
 
 ## Development Notes
 
+- Before making a pull request, ensure all tests and linting passes.
 - PWA features require HTTPS or localhost
 - IndexedDB database name: `tasky-db`
 - All timestamps stored as milliseconds (number)
