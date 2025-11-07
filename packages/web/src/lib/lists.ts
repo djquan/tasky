@@ -47,7 +47,10 @@ export function getList(id: string): List | undefined {
  */
 export function updateList(id: string, updates: Partial<List>): void {
   const list = listsMap.get(id);
-  if (!list) return;
+  if (!list) {
+    console.warn(`[updateList] List not found: ${id}`);
+    return;
+  }
 
   const updated: List = {
     ...list,
@@ -63,7 +66,10 @@ export function updateList(id: string, updates: Partial<List>): void {
  */
 export function deleteList(id: string): void {
   const list = listsMap.get(id);
-  if (!list) return;
+  if (!list) {
+    console.warn(`[deleteList] List not found: ${id}`);
+    return;
+  }
 
   // Remove from sort order
   const sortArray = listsSortOrder.toArray();
@@ -87,7 +93,10 @@ export function deleteList(id: string): void {
  */
 export function completeList(id: string): void {
   const list = listsMap.get(id);
-  if (!list) return;
+  if (!list) {
+    console.warn(`[completeList] List not found: ${id}`);
+    return;
+  }
 
   const timestamp = now();
   const updated: List = {
@@ -105,7 +114,10 @@ export function completeList(id: string): void {
  */
 export function cancelList(id: string): void {
   const list = listsMap.get(id);
-  if (!list) return;
+  if (!list) {
+    console.warn(`[cancelList] List not found: ${id}`);
+    return;
+  }
 
   const timestamp = now();
   const updated: List = {

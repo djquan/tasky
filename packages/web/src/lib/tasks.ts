@@ -58,7 +58,10 @@ export function getTask(id: string): Task | undefined {
  */
 export function updateTask(id: string, updates: Partial<Task>): void {
   const task = tasksMap.get(id);
-  if (!task) return;
+  if (!task) {
+    console.warn(`[updateTask] Task not found: ${id}`);
+    return;
+  }
 
   const oldWhen = task.when;
   const oldListId = task.listId;
@@ -86,7 +89,10 @@ export function updateTask(id: string, updates: Partial<Task>): void {
  */
 export function deleteTask(id: string): void {
   const task = tasksMap.get(id);
-  if (!task) return;
+  if (!task) {
+    console.warn(`[deleteTask] Task not found: ${id}`);
+    return;
+  }
 
   removeFromSortOrder(task);
   tasksMap.delete(id);
@@ -97,7 +103,10 @@ export function deleteTask(id: string): void {
  */
 export function toggleTask(id: string): void {
   const task = tasksMap.get(id);
-  if (!task) return;
+  if (!task) {
+    console.warn(`[toggleTask] Task not found: ${id}`);
+    return;
+  }
 
   const timestamp = now();
   const updated: Task = {
@@ -129,7 +138,10 @@ export function moveTask(
  */
 export function cancelTask(id: string): void {
   const task = tasksMap.get(id);
-  if (!task) return;
+  if (!task) {
+    console.warn(`[cancelTask] Task not found: ${id}`);
+    return;
+  }
 
   const updated: Task = {
     ...task,
