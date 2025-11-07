@@ -384,7 +384,7 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-light-bg dark:bg-dark-bg border-r border-light-border dark:border-dark-border h-screen flex flex-col">
+    <aside className="w-56 bg-light-bg dark:bg-dark-bg border-r border-light-border dark:border-dark-border h-screen flex flex-col overflow-hidden m-0">
       {/* Smart Lists */}
       <nav className="p-4 flex-shrink-0">
         <div className="space-y-1">
@@ -499,7 +499,7 @@ export function Sidebar() {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-light-border dark:border-dark-border p-4 flex items-center justify-between flex-shrink-0">
+      <div className="bg-light-bg dark:bg-dark-bg border-t border-light-border dark:border-dark-border p-4 flex items-center justify-between flex-shrink-0">
         <button
           onClick={() => setShowListTypePopup(!showListTypePopup)}
           className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
