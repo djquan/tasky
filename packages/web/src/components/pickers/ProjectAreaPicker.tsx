@@ -70,9 +70,9 @@ export function ProjectAreaPicker({
               }`}
             >
               {project.title}
-              {project.areaId && (
+              {project.parentListId && (
                 <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
-                  ({activeAreas.find(a => a.id === project.areaId)?.title})
+                  ({activeAreas.find(a => a.id === project.parentListId)?.title})
                 </span>
               )}
             </button>
