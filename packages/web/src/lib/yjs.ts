@@ -2,8 +2,7 @@ import * as Y from 'yjs';
 import { IndexeddbPersistence } from 'y-indexeddb';
 import type {
   Task,
-  Project,
-  Area,
+  List,
   Heading,
   Tag,
   ChecklistItem
@@ -27,11 +26,8 @@ export const provider = new IndexeddbPersistence('tasky-db', ydoc);
 // Tasks stored as Map<id, Task>
 export const tasksMap = ydoc.getMap<Task>('tasks');
 
-// Projects stored as Map<id, Project>
-export const projectsMap = ydoc.getMap<Project>('projects');
-
-// Areas stored as Map<id, Area>
-export const areasMap = ydoc.getMap<Area>('areas');
+// Lists (projects and areas) stored as Map<id, List>
+export const listsMap = ydoc.getMap<List>('lists');
 
 // Headings stored as Map<id, Heading>
 export const headingsMap = ydoc.getMap<Heading>('headings');
@@ -47,8 +43,7 @@ export const checklistItemsMap = ydoc.getMap<ChecklistItem>('checklistItems');
 // ============================================================================
 
 // Global sort orders for top-level entities
-export const areasSortOrder = ydoc.getArray<string>('areasSortOrder');
-export const projectsSortOrder = ydoc.getArray<string>('projectsSortOrder');
+export const listsSortOrder = ydoc.getArray<string>('listsSortOrder');
 export const tagsSortOrder = ydoc.getArray<string>('tagsSortOrder');
 
 // Task sort orders per container (view-specific)
@@ -57,11 +52,8 @@ export const todaySortOrder = ydoc.getArray<string>('todaySortOrder');
 export const anytimeSortOrder = ydoc.getArray<string>('anytimeSortOrder');
 export const somedaySortOrder = ydoc.getArray<string>('somedaySortOrder');
 
-// Per-project task sort orders stored as Map<projectId, string[]>
-export const projectTaskSortOrders = ydoc.getMap<string[]>('projectTaskSortOrders');
-
-// Per-area task sort orders stored as Map<areaId, string[]>
-export const areaTaskSortOrders = ydoc.getMap<string[]>('areaTaskSortOrders');
+// Per-list task sort orders stored as Map<listId, string[]>
+export const listTaskSortOrders = ydoc.getMap<string[]>('listTaskSortOrders');
 
 // ============================================================================
 // Helper Functions
@@ -85,20 +77,17 @@ export const waitForSync = (): Promise<void> => {
  */
 export const clearAllData = (): void => {
   tasksMap.clear();
-  projectsMap.clear();
-  areasMap.clear();
+  listsMap.clear();
   headingsMap.clear();
   tagsMap.clear();
   checklistItemsMap.clear();
-  areasSortOrder.delete(0, areasSortOrder.length);
-  projectsSortOrder.delete(0, projectsSortOrder.length);
+  listsSortOrder.delete(0, listsSortOrder.length);
   tagsSortOrder.delete(0, tagsSortOrder.length);
   inboxSortOrder.delete(0, inboxSortOrder.length);
   todaySortOrder.delete(0, todaySortOrder.length);
   anytimeSortOrder.delete(0, anytimeSortOrder.length);
   somedaySortOrder.delete(0, somedaySortOrder.length);
-  projectTaskSortOrders.clear();
-  areaTaskSortOrders.clear();
+  listTaskSortOrders.clear();
 };
 
 /**
@@ -109,17 +98,10 @@ export const getAllTasks = (): Task[] => {
 };
 
 /**
- * Get all projects as an array
+ * Get all lists as an array
  */
-export const getAllProjects = (): Project[] => {
-  return Array.from(projectsMap.values());
-};
-
-/**
- * Get all areas as an array
- */
-export const getAllAreas = (): Area[] => {
-  return Array.from(areasMap.values());
+export const getAllLists = (): List[] => {
+  return Array.from(listsMap.values());
 };
 
 /**

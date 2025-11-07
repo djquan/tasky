@@ -57,12 +57,12 @@ export function DatePicker({ value, onChange, label = 'Date' }: DatePickerProps)
   return (
     <div className="space-y-3">
       <label className="block">
-        <span className="text-sm font-medium text-gray-700 mb-1 block">{label}</span>
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">{label}</span>
         <input
           type="date"
           value={formatDate(value)}
           onChange={handleChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
         />
       </label>
 
@@ -70,9 +70,10 @@ export function DatePicker({ value, onChange, label = 'Date' }: DatePickerProps)
       <div className="flex gap-2">
         {quickOptions.map(option => (
           <button
+            type="button"
             key={option.label}
             onClick={() => onChange(option.getValue())}
-            className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex-1 px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
             {option.label}
           </button>
@@ -81,8 +82,9 @@ export function DatePicker({ value, onChange, label = 'Date' }: DatePickerProps)
 
       {value && (
         <button
+          type="button"
           onClick={handleClear}
-          className="w-full px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          className="w-full px-3 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
         >
           Clear Date
         </button>

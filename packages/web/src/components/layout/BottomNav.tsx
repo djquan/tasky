@@ -14,7 +14,7 @@ export function BottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 bg-light-bg dark:bg-dark-bg border-t border-light-border dark:border-dark-border md:hidden">
       <div className="flex items-center justify-around">
         {navItems.map(({ view, label, count, icon }) => (
           <button
@@ -22,14 +22,14 @@ export function BottomNav() {
             onClick={() => setView(view)}
             className={`flex-1 flex flex-col items-center gap-1 py-2 transition-colors ${
               currentView === view
-                ? 'text-blue-600'
-                : 'text-gray-600'
+                ? 'text-blue-600 dark:text-blue-400'
+                : 'text-gray-600 dark:text-gray-400'
             }`}
           >
             <div className="relative">
               <span className="text-xl">{icon}</span>
               {count > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-medium bg-blue-600 text-white rounded-full px-1">
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-medium bg-blue-600 dark:bg-blue-500 text-white rounded-full px-1">
                   {count > 99 ? '99+' : count}
                 </span>
               )}

@@ -1,5 +1,5 @@
-import type { Task, Project } from '@tasky/shared';
-import { getAllTasks, getAllProjects } from './yjs';
+import type { Task, List } from '@tasky/shared';
+import { getAllTasks, getAllLists } from './yjs';
 
 // ============================================================================
 // Date Utilities
@@ -54,12 +54,11 @@ function isFuture(timestamp: number | null): boolean {
 /**
  * Get tasks for Inbox view
  *
- * Inbox is a dynamic category: tasks with no date, no project, and no area.
+ * Inbox is a dynamic category: tasks with no date and no list.
  * Criteria:
  * - No scheduledDate
  * - No deadline
- * - No projectId
- * - No areaId
+ * - No listId
  * - Not scheduled for today/evening (those go to Today)
  * - Not someday (those go to Someday)
  * - Not completed/canceled
@@ -70,8 +69,8 @@ export function getInboxTasks(): Task[] {
     .filter(task => {
       if (task.completed || task.canceled) return false;
 
-      // Exclude if has organization (project or area)
-      if (task.projectId || task.areaId) return false;
+      // Exclude if has organization (list)
+      if (task.listId) return false;
 
       // Exclude if has explicit dates
       if (task.scheduledDate || task.deadline) return false;
@@ -152,9 +151,9 @@ export function getThisEveningTasks(): Task[] {
 /**
  * Get tasks for Anytime view
  *
- * Anytime contains tasks with organization (project/area) but no specific schedule.
+ * Anytime contains tasks with organization (list) but no specific schedule.
  * Criteria:
- * - Has projectId OR areaId (organized tasks)
+ * - Has listId (organized tasks)
  * - when='anytime'
  * - NOT scheduled for future
  * - NOT in Someday
@@ -168,8 +167,8 @@ export function getAnytimeTasks(): Task[] {
     .filter(task => {
       if (task.completed || task.canceled) return false;
 
-      // Must have organization (project or area)
-      if (!task.projectId && !task.areaId) return false;
+      // Must have organization (list)
+      if (!task.listId) return false;
 
       // Exclude someday
       if (task.when === 'someday') return false;
@@ -186,11 +185,9 @@ export function getAnytimeTasks(): Task[] {
       return true;
     })
     .sort((a, b) => {
-      // Sort by project/area, then creation date
-      if (a.projectId && !b.projectId) return -1;
-      if (!a.projectId && b.projectId) return 1;
-      if (a.areaId && !b.areaId) return -1;
-      if (!a.areaId && b.areaId) return 1;
+      // Sort by list, then creation date
+      if (a.listId && !b.listId) return -1;
+      if (!a.listId && b.listId) return 1;
       return b.createdAt - a.createdAt;
     });
 }
@@ -259,43 +256,35 @@ export function getLogbookTasks(): Task[] {
 }
 
 /**
- * Get tasks for a specific project
+ * Get tasks for a specific list
  */
-export function getProjectTasks(projectId: string): Task[] {
+export function getListTasks(listId: string): Task[] {
   const tasks = getAllTasks();
   return tasks
-    .filter(task => task.projectId === projectId && !task.canceled)
+    .filter(task => task.listId === listId && !task.canceled)
     .sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
+// Legacy function names for backward compatibility
+export const getProjectTasks = getListTasks;
+export const getAreaTasks = getListTasks;
+
 /**
- * Get tasks for a specific area
+ * Get lists (projects) for a specific parent list (area)
  */
-export function getAreaTasks(areaId: string): Task[] {
-  const tasks = getAllTasks();
-  return tasks
-    .filter(task =>
-      task.areaId === areaId &&
-      !task.projectId && // Direct area tasks only
-      !task.completed &&
-      !task.canceled
+export function getChildLists(parentListId: string): List[] {
+  const lists = getAllLists();
+  return lists
+    .filter(list =>
+      list.parentListId === parentListId &&
+      !list.completed &&
+      !list.canceled
     )
     .sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
-/**
- * Get projects for a specific area
- */
-export function getAreaProjects(areaId: string): Project[] {
-  const projects = getAllProjects();
-  return projects
-    .filter(project =>
-      project.areaId === areaId &&
-      !project.completed &&
-      !project.canceled
-    )
-    .sort((a, b) => a.sortOrder - b.sortOrder);
-}
+// Legacy function name
+export const getAreaProjects = getChildLists;
 
 /**
  * Get tasks with a specific tag
@@ -312,28 +301,38 @@ export function getTasksByTag(tagId: string): Task[] {
 }
 
 /**
- * Get all active projects (not completed/canceled)
+ * Get all active lists of a specific type (not completed/canceled)
  */
-export function getActiveProjects(): Project[] {
-  const projects = getAllProjects();
-  return projects
-    .filter(project => !project.completed && !project.canceled)
+export function getActiveLists(type?: 'project' | 'area'): List[] {
+  const lists = getAllLists();
+  return lists
+    .filter(list => {
+      if (type && list.type !== type) return false;
+      return !list.completed && !list.canceled;
+    })
     .sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
 /**
- * Get all completed projects
+ * Get all completed lists of a specific type
  */
-export function getCompletedProjects(): Project[] {
-  const projects = getAllProjects();
-  return projects
-    .filter(project => project.completed || project.canceled)
+export function getCompletedLists(type?: 'project' | 'area'): List[] {
+  const lists = getAllLists();
+  return lists
+    .filter(list => {
+      if (type && list.type !== type) return false;
+      return list.completed || list.canceled;
+    })
     .sort((a, b) => {
       const aCompleted = a.completedAt || a.updatedAt;
       const bCompleted = b.completedAt || b.updatedAt;
       return bCompleted - aCompleted;
     });
 }
+
+// Legacy function names
+export const getActiveProjects = () => getActiveLists('project');
+export const getCompletedProjects = () => getCompletedLists('project');
 
 // ============================================================================
 // Count Helpers
@@ -383,7 +382,7 @@ export function getSmartListCounts() {
     }
 
     // Inbox
-    if (task.when === 'inbox' && !task.projectId && !task.areaId) {
+    if (task.when === 'inbox' && !task.listId) {
       counts.inbox++;
       continue;
     }
@@ -397,7 +396,7 @@ export function getSmartListCounts() {
     // Anytime
     if (
       task.when === 'anytime' ||
-      (task.when === 'inbox' && (task.projectId || task.areaId))
+      (task.when === 'inbox' && task.listId)
     ) {
       counts.anytime++;
     }

@@ -5,8 +5,7 @@ import {
   todaySortOrder,
   anytimeSortOrder,
   somedaySortOrder,
-  projectTaskSortOrders,
-  areaTaskSortOrders
+  listTaskSortOrders
 } from './yjs';
 
 // ============================================================================
@@ -20,15 +19,6 @@ export function createTask(input: Partial<TaskInput>): Task {
   const id = generateId();
   const timestamp = now();
 
-  // Enforce mutual exclusivity: project OR area, not both
-  let projectId = input.projectId ?? null;
-  let areaId = input.areaId ?? null;
-
-  if (projectId && areaId) {
-    // If both provided, prefer project
-    areaId = null;
-  }
-
   const task: Task = {
     id,
     title: input.title || '',
@@ -38,8 +28,7 @@ export function createTask(input: Partial<TaskInput>): Task {
     deadline: input.deadline ?? null,
     tags: input.tags || [],
     checklistItems: input.checklistItems || [],
-    projectId,
-    areaId,
+    listId: input.listId ?? null,
     headingId: input.headingId ?? null,
     completed: input.completed || false,
     canceled: input.canceled || false,
@@ -72,25 +61,11 @@ export function updateTask(id: string, updates: Partial<Task>): void {
   if (!task) return;
 
   const oldWhen = task.when;
-  const oldProjectId = task.projectId;
-  const oldAreaId = task.areaId;
-
-  // Enforce mutual exclusivity: if setting projectId, clear areaId; if setting areaId, clear projectId
-  const finalUpdates = { ...updates };
-
-  if (updates.projectId !== undefined && updates.projectId !== null) {
-    // Setting a project, clear area
-    finalUpdates.areaId = null;
-    finalUpdates.headingId = finalUpdates.headingId ?? null; // Headings only valid in projects
-  } else if (updates.areaId !== undefined && updates.areaId !== null) {
-    // Setting an area, clear project and heading
-    finalUpdates.projectId = null;
-    finalUpdates.headingId = null;  // Headings not valid without project
-  }
+  const oldListId = task.listId;
 
   const updatedTask: Task = {
     ...task,
-    ...finalUpdates,
+    ...updates,
     updatedAt: now()
   };
 
@@ -98,10 +73,9 @@ export function updateTask(id: string, updates: Partial<Task>): void {
 
   // Handle sort order changes if container changed
   const whenChanged = updates.when && updates.when !== oldWhen;
-  const projectChanged = updates.projectId !== undefined && updates.projectId !== oldProjectId;
-  const areaChanged = updates.areaId !== undefined && updates.areaId !== oldAreaId;
+  const listChanged = updates.listId !== undefined && updates.listId !== oldListId;
 
-  if (whenChanged || projectChanged || areaChanged) {
+  if (whenChanged || listChanged) {
     removeFromSortOrder(task);
     addToSortOrder(updatedTask);
   }
@@ -137,14 +111,13 @@ export function toggleTask(id: string): void {
 }
 
 /**
- * Move task to a different container (when/project/area)
+ * Move task to a different container (when/list)
  */
 export function moveTask(
   id: string,
   target: {
     when?: WhenValue;
-    projectId?: string | null;
-    areaId?: string | null;
+    listId?: string | null;
     headingId?: string | null;
   }
 ): void {
@@ -178,13 +151,10 @@ export function cancelTask(id: string): void {
 function addToSortOrder(task: Task): void {
   const id = task.id;
 
-  // Priority: project > area > when
-  if (task.projectId) {
-    const sortOrder = projectTaskSortOrders.get(task.projectId) || [];
-    projectTaskSortOrders.set(task.projectId, [...sortOrder, id]);
-  } else if (task.areaId) {
-    const sortOrder = areaTaskSortOrders.get(task.areaId) || [];
-    areaTaskSortOrders.set(task.areaId, [...sortOrder, id]);
+  // Priority: list > when
+  if (task.listId) {
+    const sortOrder = listTaskSortOrders.get(task.listId) || [];
+    listTaskSortOrders.set(task.listId, [...sortOrder, id]);
   } else {
     // Add to appropriate when-based sort order
     switch (task.when) {
@@ -211,19 +181,11 @@ function addToSortOrder(task: Task): void {
 function removeFromSortOrder(task: Task): void {
   const id = task.id;
 
-  // Try project sort order
-  if (task.projectId) {
-    const sortOrder = projectTaskSortOrders.get(task.projectId) || [];
+  // Try list sort order
+  if (task.listId) {
+    const sortOrder = listTaskSortOrders.get(task.listId) || [];
     const filtered = sortOrder.filter(taskId => taskId !== id);
-    projectTaskSortOrders.set(task.projectId, filtered);
-    return;
-  }
-
-  // Try area sort order
-  if (task.areaId) {
-    const sortOrder = areaTaskSortOrders.get(task.areaId) || [];
-    const filtered = sortOrder.filter(taskId => taskId !== id);
-    areaTaskSortOrders.set(task.areaId, filtered);
+    listTaskSortOrders.set(task.listId, filtered);
     return;
   }
 
@@ -249,10 +211,8 @@ export function reorderTask(id: string, newIndex: number): void {
   // Get appropriate sort order array
   let sortOrderArray: string[] | undefined;
 
-  if (task.projectId) {
-    sortOrderArray = projectTaskSortOrders.get(task.projectId);
-  } else if (task.areaId) {
-    sortOrderArray = areaTaskSortOrders.get(task.areaId);
+  if (task.listId) {
+    sortOrderArray = listTaskSortOrders.get(task.listId);
   } else {
     // Handle when-based reordering
     let yjsArray;
@@ -293,9 +253,7 @@ export function reorderTask(id: string, newIndex: number): void {
   newArray.splice(currentIndex, 1);
   newArray.splice(newIndex, 0, id);
 
-  if (task.projectId) {
-    projectTaskSortOrders.set(task.projectId, newArray);
-  } else if (task.areaId) {
-    areaTaskSortOrders.set(task.areaId, newArray);
+  if (task.listId) {
+    listTaskSortOrders.set(task.listId, newArray);
   }
 }

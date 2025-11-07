@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
-import type { Task, Project, Area, Tag, Heading, ChecklistItem } from '@tasky/shared';
+import type { Task, List, ListType, Tag, Heading, ChecklistItem } from '@tasky/shared';
 import {
   tasksMap,
-  projectsMap,
-  areasMap,
+  listsMap,
   tagsMap,
   headingsMap,
   checklistItemsMap,
@@ -77,123 +76,97 @@ export function useTask(id: string | null) {
 }
 
 /**
- * Subscribe to all projects
+ * Subscribe to all lists
+ */
+export function useLists(type?: ListType) {
+  const [lists, setLists] = useState<List[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const updateLists = () => {
+      const allLists = Array.from(listsMap.values());
+      const filtered = type ? allLists.filter(list => list.type === type) : allLists;
+      setLists(filtered);
+    };
+
+    waitForSync().then(() => {
+      updateLists();
+      setIsLoading(false);
+    });
+
+    listsMap.observe(updateLists);
+
+    return () => {
+      listsMap.unobserve(updateLists);
+    };
+  }, [type]);
+
+  return { lists, isLoading };
+}
+
+/**
+ * Subscribe to a single list
+ */
+export function useList(id: string | null) {
+  const [list, setList] = useState<List | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) {
+      setList(null);
+      setIsLoading(false);
+      return;
+    }
+
+    waitForSync().then(() => {
+      setList(listsMap.get(id) || null);
+      setIsLoading(false);
+    });
+
+    const observer = () => {
+      setList(listsMap.get(id) || null);
+    };
+
+    listsMap.observe(observer);
+
+    return () => {
+      listsMap.unobserve(observer);
+    };
+  }, [id]);
+
+  return { list, isLoading };
+}
+
+/**
+ * Subscribe to all projects (convenience wrapper)
  */
 export function useProjects() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    waitForSync().then(() => {
-      setProjects(Array.from(projectsMap.values()));
-      setIsLoading(false);
-    });
-
-    const observer = () => {
-      setProjects(Array.from(projectsMap.values()));
-    };
-
-    projectsMap.observe(observer);
-
-    return () => {
-      projectsMap.unobserve(observer);
-    };
-  }, []);
-
-  return { projects, isLoading };
+  const { lists, isLoading } = useLists('project');
+  return { projects: lists, isLoading };
 }
 
 /**
- * Subscribe to a single project
+ * Subscribe to a single project (convenience wrapper)
  */
 export function useProject(id: string | null) {
-  const [project, setProject] = useState<Project | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (!id) {
-      setProject(null);
-      setIsLoading(false);
-      return;
-    }
-
-    waitForSync().then(() => {
-      setProject(projectsMap.get(id) || null);
-      setIsLoading(false);
-    });
-
-    const observer = () => {
-      setProject(projectsMap.get(id) || null);
-    };
-
-    projectsMap.observe(observer);
-
-    return () => {
-      projectsMap.unobserve(observer);
-    };
-  }, [id]);
-
-  return { project, isLoading };
+  const { list, isLoading } = useList(id);
+  return { project: list, isLoading };
 }
 
 /**
- * Subscribe to all areas
+ * Subscribe to all areas (convenience wrapper)
  */
 export function useAreas() {
-  const [areas, setAreas] = useState<Area[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    waitForSync().then(() => {
-      setAreas(Array.from(areasMap.values()));
-      setIsLoading(false);
-    });
-
-    const observer = () => {
-      setAreas(Array.from(areasMap.values()));
-    };
-
-    areasMap.observe(observer);
-
-    return () => {
-      areasMap.unobserve(observer);
-    };
-  }, []);
-
-  return { areas, isLoading };
+  const { lists, isLoading } = useLists('area');
+  return { areas: lists, isLoading };
 }
 
 /**
- * Subscribe to a single area
+ * Subscribe to a single area (convenience wrapper)
  */
 export function useArea(id: string | null) {
-  const [area, setArea] = useState<Area | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (!id) {
-      setArea(null);
-      setIsLoading(false);
-      return;
-    }
-
-    waitForSync().then(() => {
-      setArea(areasMap.get(id) || null);
-      setIsLoading(false);
-    });
-
-    const observer = () => {
-      setArea(areasMap.get(id) || null);
-    };
-
-    areasMap.observe(observer);
-
-    return () => {
-      areasMap.unobserve(observer);
-    };
-  }, [id]);
-
-  return { area, isLoading };
+  const { list, isLoading } = useList(id);
+  return { area: list, isLoading };
 }
 
 /**
@@ -224,14 +197,14 @@ export function useTags() {
 }
 
 /**
- * Subscribe to headings for a project
+ * Subscribe to headings for a list (project)
  */
-export function useHeadings(projectId: string | null) {
+export function useHeadings(listId: string | null) {
   const [headings, setHeadings] = useState<Heading[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!projectId) {
+    if (!listId) {
       setHeadings([]);
       setIsLoading(false);
       return;
@@ -240,7 +213,7 @@ export function useHeadings(projectId: string | null) {
     const updateHeadings = () => {
       const allHeadings = Array.from(headingsMap.values());
       const filtered = allHeadings
-        .filter(h => h.projectId === projectId && !h.archived)
+        .filter(h => h.listId === listId && !h.archived)
         .sort((a, b) => a.sortOrder - b.sortOrder);
       setHeadings(filtered);
     };
@@ -255,7 +228,7 @@ export function useHeadings(projectId: string | null) {
     return () => {
       headingsMap.unobserve(updateHeadings);
     };
-  }, [projectId]);
+  }, [listId]);
 
   return { headings, isLoading };
 }

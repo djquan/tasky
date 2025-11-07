@@ -74,21 +74,22 @@ export function WhenPicker({ value, scheduledDate, onChange, onScheduledDateChan
       <div className="space-y-1">
         {whenOptions.map(option => (
           <button
+            type="button"
             key={option.value}
             onClick={() => onChange(option.value)}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
               value === option.value && !scheduledDate
-                ? 'bg-blue-100 text-blue-700 font-medium'
-                : 'text-gray-700 hover:bg-gray-100'
+                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
             <span className="text-lg">{option.icon}</span>
             <div className="flex-1 text-left">
               <div>{option.label}</div>
-              <div className="text-xs text-gray-500">{option.description}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">{option.description}</div>
             </div>
             {value === option.value && !scheduledDate && (
-              <span className="ml-auto text-blue-600">✓</span>
+              <span className="ml-auto text-blue-600 dark:text-blue-400">✓</span>
             )}
           </button>
         ))}
@@ -96,14 +97,14 @@ export function WhenPicker({ value, scheduledDate, onChange, onScheduledDateChan
 
       {/* Date picker */}
       {onScheduledDateChange && (
-        <div className="pt-3 border-t border-gray-200">
+        <div className="pt-3 border-t border-light-border dark:border-dark-border">
           <label className="block mb-2">
-            <span className="text-sm font-medium text-gray-700 mb-1 block">📅 Specific Date</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">📅 Specific Date</span>
             <input
               type="date"
               value={formatDate(scheduledDate ?? null)}
               onChange={handleDateChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="w-full px-3 py-2 border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-hover text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-sm"
             />
           </label>
 
@@ -111,9 +112,10 @@ export function WhenPicker({ value, scheduledDate, onChange, onScheduledDateChan
           <div className="grid grid-cols-3 gap-2 mt-2">
             {quickDateOptions.map(option => (
               <button
+                type="button"
                 key={option.label}
                 onClick={() => onScheduledDateChange(option.getValue())}
-                className="px-2 py-1.5 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-2 py-1.5 text-xs border border-light-border dark:border-dark-border text-gray-700 dark:text-gray-300 rounded-lg hover:bg-light-hover dark:hover:bg-dark-hover transition-colors"
               >
                 {option.label}
               </button>
@@ -122,8 +124,9 @@ export function WhenPicker({ value, scheduledDate, onChange, onScheduledDateChan
 
           {scheduledDate && (
             <button
+              type="button"
               onClick={() => onScheduledDateChange(null)}
-              className="w-full mt-2 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              className="w-full mt-2 px-3 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
             >
               Clear Date
             </button>

@@ -9,7 +9,7 @@ interface TaskListProps {
 export function TaskList({ tasks, emptyMessage = 'No tasks' }: TaskListProps) {
   if (tasks.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+      <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
         <svg className="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"

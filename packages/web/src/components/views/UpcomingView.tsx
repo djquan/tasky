@@ -9,7 +9,7 @@ export function UpcomingView() {
   if (isLoading) {
     return (
       <ListView title="Upcoming" icon="📅">
-        <div className="text-center py-12 text-gray-400">Loading...</div>
+        <div className="text-center py-12 text-gray-400 dark:text-gray-500">Loading...</div>
       </ListView>
     );
   }
@@ -58,7 +58,7 @@ export function UpcomingView() {
         <div className="space-y-8">
           {sortedDates.map(dateStr => (
             <div key={dateStr}>
-              <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">
+              <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">
                 {formatDate(dateStr)}
               </h2>
               <TaskList tasks={groupedTasks[dateStr]} />

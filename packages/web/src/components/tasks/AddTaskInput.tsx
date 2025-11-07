@@ -44,11 +44,11 @@ export function AddTaskInput({
   return (
     <form onSubmit={handleSubmit} className="mb-6">
       <div
-        className={`flex items-center gap-3 p-3 bg-white rounded-lg border-2 transition-colors ${
-          isFocused ? 'border-blue-500' : 'border-gray-200'
+        className={`flex items-center gap-3 p-3 bg-light-surface dark:bg-dark-surface rounded-lg border-2 transition-colors ${
+          isFocused ? 'border-blue-500 dark:border-blue-400' : 'border-light-border dark:border-dark-border'
         }`}
       >
-        <span className="text-blue-500 text-xl">+</span>
+        <span className="text-blue-500 dark:text-blue-400 text-xl">+</span>
         <input
           type="text"
           value={title}
@@ -56,12 +56,12 @@ export function AddTaskInput({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           placeholder={placeholder}
-          className="flex-1 outline-none text-sm"
+          className="flex-1 outline-none text-sm bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
         />
         {title && (
           <button
             type="submit"
-            className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+            className="px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white text-sm rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
           >
             Add
           </button>

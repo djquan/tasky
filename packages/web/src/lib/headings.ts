@@ -11,7 +11,7 @@ export function createHeading(input: Partial<HeadingInput>): Heading {
   const heading: Heading = {
     id,
     title: input.title || '',
-    projectId: input.projectId || '',
+    listId: input.listId || '',
     archived: input.archived || false,
     createdAt: timestamp,
     updatedAt: timestamp,
@@ -31,14 +31,17 @@ export function getHeading(id: string): Heading | undefined {
 }
 
 /**
- * Get all headings for a project
+ * Get all headings for a list (project)
  */
-export function getProjectHeadings(projectId: string): Heading[] {
+export function getListHeadings(listId: string): Heading[] {
   const headings = Array.from(headingsMap.values());
   return headings
-    .filter(h => h.projectId === projectId && !h.archived)
+    .filter(h => h.listId === listId && !h.archived)
     .sort((a, b) => a.sortOrder - b.sortOrder);
 }
+
+// Legacy function name
+export const getProjectHeadings = getListHeadings;
 
 /**
  * Update a heading

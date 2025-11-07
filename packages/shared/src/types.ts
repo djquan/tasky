@@ -24,6 +24,8 @@ export type ViewType =
 // Core Entities
 // ============================================================================
 
+export type ListType = 'project' | 'area';
+
 export interface Task {
   id: string;
   title: string;
@@ -33,13 +35,8 @@ export interface Task {
   deadline: number | null;       // Timestamp for deadline
   tags: string[];                // Array of tag IDs
   checklistItems: string[];      // Array of checklist item IDs
-  // IMPORTANT: projectId and areaId are mutually exclusive
-  // - If projectId is set, task belongs to that project (areaId should be null)
-  // - If areaId is set, task belongs directly to that area (projectId should be null)
-  // - If both are null, task may appear in Inbox (if no dates/when)
-  projectId: string | null;
-  areaId: string | null;
-  headingId: string | null;      // Only valid when projectId is set
+  listId: string | null;         // ID of the list (project or area) this task belongs to
+  headingId: string | null;      // Only valid when listId points to a project-type list
   completed: boolean;
   canceled: boolean;
   createdAt: number;
@@ -48,14 +45,15 @@ export interface Task {
   sortOrder: number;
 }
 
-export interface Project {
+export interface List {
   id: string;
+  type: ListType;                // 'project' or 'area'
   title: string;
   notes: string;
   when: WhenValue;
   scheduledDate: number | null;
   deadline: number | null;
-  areaId: string | null;
+  parentListId: string | null;   // For projects: ID of parent area; for areas: always null
   tags: string[];
   completed: boolean;
   canceled: boolean;
@@ -65,19 +63,14 @@ export interface Project {
   sortOrder: number;
 }
 
-export interface Area {
-  id: string;
-  title: string;
-  tags: string[];
-  createdAt: number;
-  updatedAt: number;
-  sortOrder: number;
-}
+// Legacy type aliases for backward compatibility
+export type Project = List & { type: 'project' };
+export type Area = List & { type: 'area' };
 
 export interface Heading {
   id: string;
   title: string;
-  projectId: string;
+  listId: string;               // ID of the project-type list this heading belongs to
   archived: boolean;
   createdAt: number;
   updatedAt: number;
@@ -110,11 +103,14 @@ export interface ChecklistItem {
 // ============================================================================
 
 export type TaskInput = Omit<Task, 'id' | 'createdAt' | 'completedAt' | 'updatedAt'>;
-export type ProjectInput = Omit<Project, 'id' | 'createdAt' | 'completedAt' | 'updatedAt'>;
-export type AreaInput = Omit<Area, 'id' | 'createdAt' | 'updatedAt'>;
+export type ListInput = Omit<List, 'id' | 'createdAt' | 'completedAt' | 'updatedAt'>;
 export type HeadingInput = Omit<Heading, 'id' | 'createdAt' | 'updatedAt'>;
 export type TagInput = Omit<Tag, 'id' | 'createdAt' | 'updatedAt'>;
 export type ChecklistItemInput = Omit<ChecklistItem, 'id' | 'createdAt' | 'updatedAt'>;
+
+// Legacy input types for backward compatibility
+export type ProjectInput = ListInput & { type: 'project' };
+export type AreaInput = ListInput & { type: 'area' };
 
 // ============================================================================
 // Helper Types

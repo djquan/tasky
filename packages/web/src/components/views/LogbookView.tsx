@@ -8,14 +8,14 @@ export function LogbookView() {
   if (isLoading) {
     return (
       <ListView title="Logbook" icon="✓">
-        <div className="text-center py-12 text-gray-400">Loading...</div>
+        <div className="text-center py-12 text-gray-400 dark:text-gray-500">Loading...</div>
       </ListView>
     );
   }
 
   return (
     <ListView title="Logbook" icon="✓">
-      <p className="text-sm text-gray-600 mb-6">
+      <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
         Completed and canceled tasks are archived here.
       </p>
       <TaskList tasks={tasks} emptyMessage="No completed tasks yet" />

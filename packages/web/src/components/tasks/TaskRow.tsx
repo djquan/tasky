@@ -45,15 +45,15 @@ export function TaskRow({ task }: TaskRowProps) {
   return (
     <div
       onClick={() => selectTask(task.id)}
-      className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all cursor-pointer group"
+      className="flex items-start gap-3 p-3 bg-light-surface dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border hover:shadow-md dark:hover:shadow-none transition-all cursor-pointer group"
     >
       {/* Checkbox */}
       <button
         onClick={handleToggle}
-        className="flex-shrink-0 mt-0.5 w-5 h-5 rounded-full border-2 border-gray-300 hover:border-blue-500 transition-colors flex items-center justify-center"
+        className="flex-shrink-0 mt-0.5 w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400 transition-colors flex items-center justify-center"
       >
         {task.completed && (
-          <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="w-3 h-3 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
               d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -67,14 +67,14 @@ export function TaskRow({ task }: TaskRowProps) {
       <div className="flex-1 min-w-0">
         <h3
           className={`text-sm font-medium ${
-            task.completed ? 'line-through text-gray-400' : 'text-gray-900'
+            task.completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-white'
           }`}
         >
           {task.title}
         </h3>
 
         {task.notes && (
-          <p className="text-xs text-gray-500 mt-1 line-clamp-2">{task.notes}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{task.notes}</p>
         )}
 
         {/* Metadata */}
@@ -98,8 +98,8 @@ export function TaskRow({ task }: TaskRowProps) {
             <span
               className={`text-xs px-2 py-0.5 rounded-full ${
                 isOverdue
-                  ? 'bg-red-100 text-red-700 font-medium'
-                  : 'bg-orange-100 text-orange-700'
+                  ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 font-medium'
+                  : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
               }`}
             >
               {formatDeadline(task.deadline)}
@@ -108,7 +108,7 @@ export function TaskRow({ task }: TaskRowProps) {
 
           {/* Checklist indicator */}
           {task.checklistItems.length > 0 && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
               ☑ {task.checklistItems.length}
             </span>
           )}
@@ -119,7 +119,7 @@ export function TaskRow({ task }: TaskRowProps) {
       <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           onClick={handleDelete}
-          className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+          className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
           title="Delete task"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
