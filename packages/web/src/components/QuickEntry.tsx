@@ -215,8 +215,8 @@ export function QuickEntry() {
                       title="Schedule"
                       aria-label="Schedule task"
                     >
-                      <span className="text-xs">{whenDisplay.icon}</span>
-                      <span className="text-xs">
+                      <span className="text-sm">{whenDisplay.icon}</span>
+                      <span className="text-sm">
                         {whenDisplay.text}
                       </span>
                     </button>
@@ -260,8 +260,8 @@ export function QuickEntry() {
                       title="Project"
                       aria-label="Assign to project or area"
                     >
-                      <span className="text-xs">{list.type === 'project' ? '📁' : '🗂️'}</span>
-                      <span className="text-xs">
+                      <span className="text-sm">{list.type === 'project' ? '📁' : '🗂️'}</span>
+                      <span className="text-sm">
                         {list.title}
                       </span>
                     </button>

@@ -240,8 +240,8 @@ export function TaskDetail() {
                     title="Schedule"
                     aria-label="Schedule task"
                   >
-                    <span className="text-xs">{whenDisplay.icon}</span>
-                    <span className={`text-xs ${whenDisplay.isOverdue
+                    <span className="text-sm">{whenDisplay.icon}</span>
+                    <span className={`text-sm ${whenDisplay.isOverdue
                       ? 'text-red-600 dark:text-red-400 font-medium'
                       : ''
                       }`}>
@@ -288,8 +288,8 @@ export function TaskDetail() {
                     title="Project"
                     aria-label="Assign to project or area"
                   >
-                    <span className="text-xs">{list.type === 'project' ? '📁' : '🗂️'}</span>
-                    <span className="text-xs">
+                    <span className="text-sm">{list.type === 'project' ? '📁' : '🗂️'}</span>
+                    <span className="text-sm">
                       {list.title}
                     </span>
                   </button>
