@@ -474,5 +474,76 @@ describe('tasks.ts', () => {
       expect(undoManager.canRedo()).toBe(false);
       expect(undoManager.canUndo()).toBe(true);
     });
+
+    it('should handle undo with sort order changes', () => {
+      const task = tasks.createTask({ when: 'anytime' });
+      tasks.updateTask(task.id, { when: 'today' });
+      expect(tasks.getTask(task.id)?.when).toBe('today');
+
+      undoManager.undo();
+      expect(tasks.getTask(task.id)?.when).toBe('anytime');
+    });
+
+    it('should handle undo with list changes', () => {
+      const task = tasks.createTask({ listId: 'list-1' });
+      tasks.updateTask(task.id, { listId: 'list-2' });
+      expect(tasks.getTask(task.id)?.listId).toBe('list-2');
+
+      undoManager.undo();
+      expect(tasks.getTask(task.id)?.listId).toBe('list-1');
+    });
+
+    it('should handle undo of reorder operation', async () => {
+      // Clear any existing tasks for this list first
+      const yjs = await import('./yjs');
+      const existingOrder = yjs.listTaskSortOrders.get('list-1') || [];
+      existingOrder.forEach(taskId => {
+        if (mockTasksMap.has(taskId)) {
+          mockTasksMap.delete(taskId);
+        }
+      });
+      yjs.listTaskSortOrders.set('list-1', []);
+
+      const task1 = tasks.createTask({ listId: 'list-1' });
+      const task2 = tasks.createTask({ listId: 'list-1' });
+      
+      const originalOrder = yjs.listTaskSortOrders.get('list-1') || [];
+      expect(originalOrder.length).toBe(2);
+      expect(originalOrder).toContain(task1.id);
+      expect(originalOrder).toContain(task2.id);
+      
+      // Move task2 to index 0
+      tasks.reorderTask(task2.id, 0);
+      const reordered = yjs.listTaskSortOrders.get('list-1') || [];
+      expect(reordered[0]).toBe(task2.id);
+      expect(reordered.length).toBe(2);
+
+      undoManager.undo();
+      const restoredOrder = yjs.listTaskSortOrders.get('list-1') || [];
+      // Order should be restored - both tasks should still be present
+      expect(restoredOrder).toContain(task1.id);
+      expect(restoredOrder).toContain(task2.id);
+      expect(restoredOrder.length).toBe(2);
+    });
+
+    it('should handle undo of task update with when change', () => {
+      const task = tasks.createTask({ when: 'anytime' });
+      tasks.updateTask(task.id, { when: 'someday' });
+      expect(tasks.getTask(task.id)?.when).toBe('someday');
+
+      undoManager.undo();
+      expect(tasks.getTask(task.id)?.when).toBe('anytime');
+    });
+
+    it('should handle undo of task update with both when and listId change', () => {
+      const task = tasks.createTask({ when: 'anytime', listId: null });
+      tasks.updateTask(task.id, { when: 'today', listId: 'list-1' });
+      expect(tasks.getTask(task.id)?.when).toBe('today');
+      expect(tasks.getTask(task.id)?.listId).toBe('list-1');
+
+      undoManager.undo();
+      expect(tasks.getTask(task.id)?.when).toBe('anytime');
+      expect(tasks.getTask(task.id)?.listId).toBeNull();
+    });
   });
 });

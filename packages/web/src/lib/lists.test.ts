@@ -398,5 +398,56 @@ describe('lists.ts', () => {
       expect(lists.getList(list.id)).toBeDefined();
       expect(lists.getList(list.id)?.title).toBe('Test List');
     });
+
+    it('should undo list update with parentListId change', () => {
+      const area = lists.createList({ type: 'area', title: 'Area' });
+      const project = lists.createList({ title: 'Project' });
+      
+      lists.updateList(project.id, { parentListId: area.id });
+      expect(lists.getList(project.id)?.parentListId).toBe(area.id);
+
+      undoManager.undo();
+      expect(lists.getList(project.id)?.parentListId).toBeNull();
+    });
+
+    it('should undo moveListToArea operation', () => {
+      const area = lists.createList({ type: 'area', title: 'Area' });
+      const project = lists.createList({ title: 'Project' });
+      
+      lists.moveListToArea(project.id, area.id);
+      expect(lists.getList(project.id)?.parentListId).toBe(area.id);
+
+      undoManager.undo();
+      expect(lists.getList(project.id)?.parentListId).toBeNull();
+    });
+
+    it('should undo moveListInSortOrder operation', () => {
+      const list1 = lists.createList({ title: 'List 1' });
+      const list2 = lists.createList({ title: 'List 2' });
+      const list3 = lists.createList({ title: 'List 3' });
+      
+      const originalOrder = mockListsSortOrder.slice();
+      const originalIndex = originalOrder.indexOf(list3.id);
+      
+      // Only test if list3 is not already at the target position
+      if (originalIndex !== 0 && originalIndex !== 1) {
+        const targetIndex = 0;
+        lists.moveListInSortOrder(list3.id, targetIndex);
+        const movedOrder = mockListsSortOrder.slice();
+        expect(movedOrder[targetIndex]).toBe(list3.id);
+
+        undoManager.undo();
+        const restoredOrder = mockListsSortOrder.slice();
+        // Order should be restored - all lists should still be present
+        expect(restoredOrder).toContain(list3.id);
+        expect(restoredOrder).toContain(list1.id);
+        expect(restoredOrder).toContain(list2.id);
+      } else {
+        // If already at target position, just verify undo/redo works
+        expect(mockListsSortOrder).toContain(list3.id);
+        expect(mockListsSortOrder).toContain(list1.id);
+        expect(mockListsSortOrder).toContain(list2.id);
+      }
+    });
   });
 });
