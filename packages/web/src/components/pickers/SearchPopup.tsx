@@ -235,7 +235,7 @@ export function SearchPopup({ buttonRef }: SearchPopupProps) {
       }}
     >
       <div
-        className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg shadow-xl w-[500px] max-h-[400px] flex flex-col"
+        className="bg-light-bg dark:bg-dark-bg border border-light-border dark:border-dark-border rounded-lg shadow-xl w-[500px] max-h-[400px] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input */}
@@ -271,8 +271,12 @@ export function SearchPopup({ buttonRef }: SearchPopupProps) {
               }`}
             >
               <div className="flex items-center gap-2">
-                <span className="text-base">
-                  {result.type === 'task' ? '✓' : (result.item as List).type === 'project' ? '📁' : '🗂️'}
+                <span className="text-base flex items-center">
+                  {result.type === 'task' ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <rect x="4" y="4" width="16" height="16" rx="2" strokeWidth="2" />
+                    </svg>
+                  ) : (result.item as List).type === 'project' ? '📁' : '🗂️'}
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className={`text-sm font-medium truncate ${
