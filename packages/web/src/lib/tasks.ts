@@ -175,6 +175,8 @@ function addToSortOrder(task: Task): void {
         todaySortOrder.push([id]);
         break;
       case 'anytime':
+        // All anytime tasks without listId go to anytimeSortOrder
+        // The distinction between inbox and anytime views is handled by filter functions
         anytimeSortOrder.push([id]);
         break;
       case 'someday':
