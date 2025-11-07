@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Heading, HeadingInput } from '@tasky/shared';
 import * as headings from './headings';
-import * as yjs from './yjs';
 
 // Mock yjs module
 const mockHeadingsMap = new Map<string, Heading>();
@@ -85,7 +84,7 @@ describe('headings.ts', () => {
 
     it('should exclude archived headings', () => {
       const active = headings.createHeading({ listId: 'list-1', title: 'Active' });
-      const archived = headings.createHeading({ listId: 'list-1', title: 'Archived', archived: true });
+      headings.createHeading({ listId: 'list-1', title: 'Archived', archived: true });
       
       const listHeadings = headings.getListHeadings('list-1');
       
@@ -94,9 +93,9 @@ describe('headings.ts', () => {
     });
 
     it('should sort by sortOrder', () => {
-      const heading1 = headings.createHeading({ listId: 'list-1', sortOrder: 300 });
-      const heading2 = headings.createHeading({ listId: 'list-1', sortOrder: 100 });
-      const heading3 = headings.createHeading({ listId: 'list-1', sortOrder: 200 });
+      headings.createHeading({ listId: 'list-1', sortOrder: 300 });
+      headings.createHeading({ listId: 'list-1', sortOrder: 100 });
+      headings.createHeading({ listId: 'list-1', sortOrder: 200 });
       
       const listHeadings = headings.getListHeadings('list-1');
       

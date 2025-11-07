@@ -180,7 +180,7 @@ describe('tasks.ts', () => {
   describe('updateTask', () => {
     it('should update task properties', async () => {
       const task = tasks.createTask({ title: 'Original' });
-      await new Promise(resolve => setTimeout(resolve, 1)); // Small delay to ensure timestamp difference
+      await new Promise(resolve => setTimeout(resolve, 2)); // Small delay to ensure timestamp difference
       tasks.updateTask(task.id, { title: 'Updated' });
       
       const updated = tasks.getTask(task.id);

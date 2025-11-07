@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ChecklistItem, ChecklistItemInput } from '@tasky/shared';
 import * as checklists from './checklists';
-import * as yjs from './yjs';
 
 // Mock yjs module
 const mockChecklistItemsMap = new Map<string, ChecklistItem>();
@@ -86,9 +85,9 @@ describe('checklists.ts', () => {
     });
 
     it('should sort by sortOrder', () => {
-      const item1 = checklists.createChecklistItem({ taskId: 'task-1', sortOrder: 300 });
-      const item2 = checklists.createChecklistItem({ taskId: 'task-1', sortOrder: 100 });
-      const item3 = checklists.createChecklistItem({ taskId: 'task-1', sortOrder: 200 });
+      checklists.createChecklistItem({ taskId: 'task-1', sortOrder: 300 });
+      checklists.createChecklistItem({ taskId: 'task-1', sortOrder: 100 });
+      checklists.createChecklistItem({ taskId: 'task-1', sortOrder: 200 });
       
       const taskItems = checklists.getTaskChecklistItems('task-1');
       

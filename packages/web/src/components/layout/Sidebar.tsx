@@ -116,7 +116,6 @@ export function Sidebar() {
   );
 
   const activeProjects = sortedLists.filter(p => p.type === 'project' && !p.completed && !p.canceled);
-  const activeAreas = sortedLists.filter(a => a.type === 'area');
 
   // Build hierarchical structure from sorted lists
   const listItems: Array<{ list: List; level: number }> = [];
