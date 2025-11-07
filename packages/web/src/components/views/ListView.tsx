@@ -1,4 +1,5 @@
 import { ReactNode, useState, useRef, useEffect } from 'react';
+import { useNavigation } from '../../store/navigation';
 
 interface ListViewProps {
   title: string;
@@ -9,6 +10,7 @@ interface ListViewProps {
 }
 
 export function ListView({ title, icon, children, onTitleChange, autoEdit = false }: ListViewProps) {
+  const { toggleSidebar } = useNavigation();
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(title);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -60,6 +62,17 @@ export function ListView({ title, icon, children, onTitleChange, autoEdit = fals
     <div className="max-w-4xl mx-auto p-4 md:p-6">
       <header className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+          {/* Mobile Hamburger Menu Button */}
+          <button
+            onClick={toggleSidebar}
+            className="md:hidden text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors p-1 -ml-1"
+            aria-label="Toggle sidebar"
+            title="Toggle sidebar"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
           {icon && <span className="text-4xl">{icon}</span>}
           {isEditing && onTitleChange ? (
             <input

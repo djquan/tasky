@@ -53,7 +53,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     setContextId(id);
   };
 
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  const toggleSidebar = () => setSidebarOpen(prev => !prev);
 
   const selectTask = (taskId: string | null) => {
     if (taskId === null) {

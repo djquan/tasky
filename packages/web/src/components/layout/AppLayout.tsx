@@ -1,6 +1,5 @@
 import { ReactNode, useRef, useEffect, useState } from 'react';
 import { Sidebar } from './Sidebar';
-import { BottomNav } from './BottomNav';
 import { TaskDetail } from '../tasks/TaskDetail';
 import { QuickEntry } from '../QuickEntry';
 import { WhenPopup } from '../pickers/WhenPopup';
@@ -15,7 +14,7 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const { sidebarOpen, taskDetailOpen, selectedTaskIds, openWhenPopup, openListPopup, openSearchPopup, toggleQuickEntry, whenPopupOpen, listPopupOpen, searchPopupOpen, clearSelection } = useNavigation();
+  const { sidebarOpen, taskDetailOpen, selectedTaskIds, openWhenPopup, openListPopup, openSearchPopup, toggleQuickEntry, whenPopupOpen, listPopupOpen, searchPopupOpen, clearSelection, toggleSidebar } = useNavigation();
   const calendarButtonRef = useRef<HTMLButtonElement>(null);
   const listButtonRef = useRef<HTMLButtonElement>(null);
   const searchButtonRef = useRef<HTMLButtonElement>(null);
@@ -94,22 +93,33 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-light-bg dark:bg-dark-bg">
-      {/* Desktop Sidebar */}
+      {/* Mobile Backdrop */}
       {sidebarOpen && (
-        <div className="hidden md:block">
-          <Sidebar />
-        </div>
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity"
+          onClick={toggleSidebar}
+        />
       )}
+
+      {/* Desktop Sidebar - Always Visible */}
+      <div className="hidden md:block fixed left-0 top-0 bottom-0 z-30">
+        <Sidebar />
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      <div className={`md:hidden fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out h-full ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <Sidebar />
+      </div>
 
       {/* Main Content */}
       <main
-        className="flex-1 overflow-y-auto pb-20 md:pb-16 bg-light-surface dark:bg-dark-surface relative"
+        className="flex-1 overflow-y-auto pb-4 md:pb-16 bg-light-surface dark:bg-dark-surface relative md:ml-56"
         onClick={handleMainClick}
       >
         {children}
 
         {/* Bottom Bar (Desktop) */}
-        <div className={`hidden md:flex fixed bottom-0 bg-light-bg dark:bg-dark-bg border-t border-light-border dark:border-dark-border px-6 py-3 items-center justify-start gap-6 ${sidebarOpen ? 'left-64' : 'left-0'} right-0`}>
+        <div className="hidden md:flex fixed bottom-0 bg-light-bg dark:bg-dark-bg border-t border-light-border dark:border-dark-border px-6 py-3 items-center justify-start gap-6 left-56 right-0">
           <button
             onClick={toggleQuickEntry}
             className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
@@ -196,8 +206,17 @@ export function AppLayout({ children }: AppLayoutProps) {
         </div>
       </main>
 
-      {/* Mobile Bottom Navigation */}
-      <BottomNav />
+      {/* Mobile Floating Action Button */}
+      <button
+        onClick={toggleQuickEntry}
+        className="md:hidden fixed bottom-4 right-4 z-30 w-14 h-14 bg-blue-600 dark:bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center justify-center"
+        aria-label="Add new task"
+        title="Add new task"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        </svg>
+      </button>
 
       {/* Task Detail Panel */}
       {taskDetailOpen && <TaskDetail />}
