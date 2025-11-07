@@ -175,7 +175,13 @@ function addToSortOrder(task: Task): void {
         todaySortOrder.push([id]);
         break;
       case 'anytime':
-        anytimeSortOrder.push([id]);
+        // Inbox: tasks with no list, no dates, when='anytime'
+        if (!task.scheduledDate && !task.deadline) {
+          inboxSortOrder.push([id]);
+        } else {
+          // Has dates but no list - shouldn't happen in normal flow, but handle it
+          anytimeSortOrder.push([id]);
+        }
         break;
       case 'someday':
         somedaySortOrder.push([id]);

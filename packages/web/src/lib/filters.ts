@@ -371,10 +371,12 @@ export function getSmartListCounts() {
   };
 
   for (const task of tasks) {
+    // Canceled tasks go to trash
     if (task.canceled) {
       counts.trash++;
       continue;
     }
+    // Completed tasks go to logbook (but not canceled)
     if (task.completed) {
       counts.logbook++;
       continue;
