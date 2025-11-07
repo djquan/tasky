@@ -545,5 +545,56 @@ describe('tasks.ts', () => {
       expect(tasks.getTask(task.id)?.when).toBe('anytime');
       expect(tasks.getTask(task.id)?.listId).toBeNull();
     });
+
+    it('should handle undo of reorder for task in when-based container', async () => {
+      const task1 = tasks.createTask({ when: 'today' });
+      const task2 = tasks.createTask({ when: 'today' });
+      const yjs = await import('./yjs');
+      
+      const originalOrder = yjs.todaySortOrder.toArray();
+      expect(originalOrder).toContain(task1.id);
+      expect(originalOrder).toContain(task2.id);
+      
+      tasks.reorderTask(task2.id, 0);
+      const reordered = yjs.todaySortOrder.toArray();
+      expect(reordered[0]).toBe(task2.id);
+
+      undoManager.undo();
+      const restoredOrder = yjs.todaySortOrder.toArray();
+      expect(restoredOrder).toContain(task1.id);
+      expect(restoredOrder).toContain(task2.id);
+    });
+
+    it('should handle undo when task not found during update', () => {
+      const task = tasks.createTask({ title: 'Original' });
+      tasks.updateTask(task.id, { title: 'Updated' });
+      undoManager.undo();
+      
+      expect(tasks.getTask(task.id)?.title).toBe('Original');
+    });
+
+    it('should handle undo when task not found during delete', () => {
+      const task = tasks.createTask({ title: 'Test Task' });
+      tasks.deleteTask(task.id);
+      undoManager.undo();
+      
+      expect(tasks.getTask(task.id)).toBeDefined();
+    });
+
+    it('should handle undo when task not found during toggle', () => {
+      const task = tasks.createTask({ completed: false });
+      tasks.toggleTask(task.id);
+      undoManager.undo();
+      
+      expect(tasks.getTask(task.id)?.completed).toBe(false);
+    });
+
+    it('should handle undo when task not found during cancel', () => {
+      const task = tasks.createTask({ canceled: false });
+      tasks.cancelTask(task.id);
+      undoManager.undo();
+      
+      expect(tasks.getTask(task.id)?.canceled).toBe(false);
+    });
   });
 });

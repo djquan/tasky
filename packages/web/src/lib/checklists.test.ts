@@ -222,5 +222,32 @@ describe('checklists.ts', () => {
       undoManager.undo();
       expect(checklists.getChecklistItem(item.id)?.completed).toBe(false);
     });
+
+    it('should handle undo when item not found during update', () => {
+      const item = checklists.createChecklistItem({ taskId: 'task-1', title: 'Original' });
+      checklists.updateChecklistItem(item.id, { title: 'Updated' });
+      undoManager.undo();
+      
+      // Item should be restored
+      expect(checklists.getChecklistItem(item.id)?.title).toBe('Original');
+    });
+
+    it('should handle undo when item not found during toggle', () => {
+      const item = checklists.createChecklistItem({ taskId: 'task-1', completed: false });
+      checklists.toggleChecklistItem(item.id);
+      undoManager.undo();
+      
+      // Item should be restored
+      expect(checklists.getChecklistItem(item.id)?.completed).toBe(false);
+    });
+
+    it('should handle undo when item not found during delete', () => {
+      const item = checklists.createChecklistItem({ taskId: 'task-1', title: 'Test' });
+      checklists.deleteChecklistItem(item.id);
+      undoManager.undo();
+      
+      // Item should be restored
+      expect(checklists.getChecklistItem(item.id)).toBeDefined();
+    });
   });
 });

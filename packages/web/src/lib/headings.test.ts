@@ -204,5 +204,29 @@ describe('headings.ts', () => {
       undoManager.undo();
       expect(headings.getHeading(heading.id)?.archived).toBe(false);
     });
+
+    it('should handle undo when heading not found during update', () => {
+      const heading = headings.createHeading({ listId: 'list-1', title: 'Original' });
+      headings.updateHeading(heading.id, { title: 'Updated' });
+      undoManager.undo();
+      
+      expect(headings.getHeading(heading.id)?.title).toBe('Original');
+    });
+
+    it('should handle undo when heading not found during delete', () => {
+      const heading = headings.createHeading({ listId: 'list-1', title: 'Test' });
+      headings.deleteHeading(heading.id);
+      undoManager.undo();
+      
+      expect(headings.getHeading(heading.id)).toBeDefined();
+    });
+
+    it('should handle undo when heading not found during archive', () => {
+      const heading = headings.createHeading({ listId: 'list-1', archived: false });
+      headings.archiveHeading(heading.id);
+      undoManager.undo();
+      
+      expect(headings.getHeading(heading.id)?.archived).toBe(false);
+    });
   });
 });

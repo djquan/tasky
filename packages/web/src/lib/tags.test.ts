@@ -242,5 +242,21 @@ describe('tags.ts', () => {
       expect(tags.getTag(tag.id)).toBeDefined();
       expect(tags.getTag(tag.id)?.name).toBe('Test Tag');
     });
+
+    it('should handle undo when tag not found during update', () => {
+      const tag = tags.createTag({ name: 'Original' });
+      tags.updateTag(tag.id, { name: 'Updated' });
+      undoManager.undo();
+      
+      expect(tags.getTag(tag.id)?.name).toBe('Original');
+    });
+
+    it('should handle undo when tag not found during delete', () => {
+      const tag = tags.createTag({ name: 'Test Tag' });
+      tags.deleteTag(tag.id);
+      undoManager.undo();
+      
+      expect(tags.getTag(tag.id)).toBeDefined();
+    });
   });
 });
