@@ -96,7 +96,7 @@ export function QuickEntry() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Cmd+N or Ctrl+N to toggle
-      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'n') {
         e.preventDefault();
         toggleQuickEntry();
       }

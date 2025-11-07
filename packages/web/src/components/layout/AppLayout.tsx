@@ -54,7 +54,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       const isMetaKey = isMac ? e.metaKey : e.ctrlKey;
 
       // Cmd+K/Ctrl+K or Cmd+F/Ctrl+F to open search
-      if (isMetaKey && (e.key === 'k' || e.key === 'f')) {
+      if (isMetaKey && (e.key.toLowerCase() === 'k' || e.key.toLowerCase() === 'f')) {
         e.preventDefault();
         openSearchPopup();
       }
