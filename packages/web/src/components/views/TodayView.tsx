@@ -61,7 +61,7 @@ export function TodayView() {
       {Object.values(tasksByList.grouped).map(({ list, tasks }, index, array) => {
         const isLastGrouped = index === array.length - 1;
         const hasMoreSections = tasksByList.noList.length > 0 || eveningTasks.length > 0;
-        const showSeparator = !isLastGrouped || hasMoreSections;
+        const showSeparator = isLastGrouped && hasMoreSections;
 
         return (
           <div key={list!.id} className="mb-6">

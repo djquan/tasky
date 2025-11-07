@@ -170,30 +170,30 @@ export function QuickEntry() {
     <>
       {/* Overlay */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-30 dark:bg-opacity-60 z-50 flex items-start justify-center pt-32"
+        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-start justify-center pt-20"
         onClick={toggleQuickEntry}
       >
         {/* Quick Entry Modal */}
         <div
-          className="w-full max-w-2xl bg-light-surface dark:bg-dark-surface rounded-lg shadow-2xl"
+          className="w-full max-w-lg bg-light-surface dark:bg-dark-surface rounded-lg shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           <form onSubmit={handleSubmit}>
-            {/* Main Content */}
-            <div className="p-6">
-              {/* Title Input */}
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="New To-Do"
-                className="w-full text-2xl font-medium focus:outline-none bg-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 mb-3"
-              />
+          {/* Main Content */}
+          <div className="p-4">
+            {/* Title Input */}
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="New To-Do"
+              className="w-full text-2xl font-medium focus:outline-none bg-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 mb-2"
+            />
 
-              {/* Notes */}
-              <div className="mb-4">
-                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Notes</label>
+            {/* Notes */}
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Notes</label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
@@ -298,7 +298,7 @@ export function QuickEntry() {
             </div>
 
             {/* Actions */}
-            <div className="px-6 py-4 flex items-center justify-end border-t border-light-border dark:border-dark-border">
+            <div className="px-4 py-3 flex items-center justify-end border-t border-light-border dark:border-dark-border">
               <div className="flex gap-2">
                 <button
                   type="button"
