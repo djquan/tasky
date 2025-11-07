@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Tag, TagInput } from '@tasky/shared';
 import * as tags from './tags';
+import { undoManager } from './undo';
 
 // Mock yjs module
 const mockTagsMap = new Map<string, Tag>();
@@ -25,6 +26,11 @@ vi.mock('./yjs', () => ({
     delete: (index: number, length: number) => {
       mockTagsSortOrder.splice(index, length);
     },
+    insert: (index: number, items: string[]) => {
+      mockTagsSortOrder.splice(index, 0, ...items);
+    },
+    indexOf: (id: string) => mockTagsSortOrder.indexOf(id),
+    length: 0,
   },
 }));
 
@@ -194,6 +200,47 @@ describe('tags.ts', () => {
       expect(roots.map(r => r.id)).toContain(root2.id);
       expect(roots.map(r => r.id)).toContain(parent.id);
       expect(roots.map(r => r.id)).not.toContain(child.id);
+    });
+  });
+
+  describe('undo/redo integration', () => {
+    beforeEach(() => {
+      while (undoManager.canUndo()) {
+        undoManager.undo();
+      }
+      while (undoManager.canRedo()) {
+        undoManager.redo();
+      }
+      undoManager.clearRedo();
+    });
+
+    it('should undo tag creation', () => {
+      const tag = tags.createTag({ name: 'Test Tag' });
+      expect(tags.getTag(tag.id)).toBeDefined();
+      expect(undoManager.canUndo()).toBe(true);
+
+      undoManager.undo();
+      expect(tags.getTag(tag.id)).toBeUndefined();
+      expect(undoManager.canRedo()).toBe(true);
+    });
+
+    it('should undo tag update', () => {
+      const tag = tags.createTag({ name: 'Original' });
+      tags.updateTag(tag.id, { name: 'Updated' });
+      expect(tags.getTag(tag.id)?.name).toBe('Updated');
+
+      undoManager.undo();
+      expect(tags.getTag(tag.id)?.name).toBe('Original');
+    });
+
+    it('should undo tag deletion', () => {
+      const tag = tags.createTag({ name: 'Test Tag' });
+      tags.deleteTag(tag.id);
+      expect(tags.getTag(tag.id)).toBeUndefined();
+
+      undoManager.undo();
+      expect(tags.getTag(tag.id)).toBeDefined();
+      expect(tags.getTag(tag.id)?.name).toBe('Test Tag');
     });
   });
 });

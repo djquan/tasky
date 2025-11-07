@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { List, ListInput } from '@tasky/shared';
 import * as lists from './lists';
+import { undoManager } from './undo';
 
 // Mock yjs module
 const mockListsMap = new Map<string, List>();
@@ -355,6 +356,47 @@ describe('lists.ts', () => {
       lists.removeListFromSortOrder(list.id);
       
       expect(mockListsSortOrder).not.toContain(list.id);
+    });
+  });
+
+  describe('undo/redo integration', () => {
+    beforeEach(() => {
+      while (undoManager.canUndo()) {
+        undoManager.undo();
+      }
+      while (undoManager.canRedo()) {
+        undoManager.redo();
+      }
+      undoManager.clearRedo();
+    });
+
+    it('should undo list creation', () => {
+      const list = lists.createList({ title: 'Test List' });
+      expect(lists.getList(list.id)).toBeDefined();
+      expect(undoManager.canUndo()).toBe(true);
+
+      undoManager.undo();
+      expect(lists.getList(list.id)).toBeUndefined();
+      expect(undoManager.canRedo()).toBe(true);
+    });
+
+    it('should undo list update', () => {
+      const list = lists.createList({ title: 'Original' });
+      lists.updateList(list.id, { title: 'Updated' });
+      expect(lists.getList(list.id)?.title).toBe('Updated');
+
+      undoManager.undo();
+      expect(lists.getList(list.id)?.title).toBe('Original');
+    });
+
+    it('should undo list deletion', () => {
+      const list = lists.createList({ title: 'Test List' });
+      lists.deleteList(list.id);
+      expect(lists.getList(list.id)).toBeUndefined();
+
+      undoManager.undo();
+      expect(lists.getList(list.id)).toBeDefined();
+      expect(lists.getList(list.id)?.title).toBe('Test List');
     });
   });
 });

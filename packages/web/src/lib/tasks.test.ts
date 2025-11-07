@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Task, TaskInput } from '@tasky/shared';
 import * as tasks from './tasks';
+import { undoManager } from './undo';
 
 // Mock yjs module
 const mockTasksMap = new Map<string, Task>();
@@ -362,6 +363,116 @@ describe('tasks.ts', () => {
     it('should do nothing if task not found', () => {
       tasks.reorderTask('non-existent', 0);
       // Should not throw
+    });
+  });
+
+  describe('undo/redo integration', () => {
+    beforeEach(() => {
+      // Clear undo/redo stacks before each test
+      while (undoManager.canUndo()) {
+        undoManager.undo();
+      }
+      while (undoManager.canRedo()) {
+        undoManager.redo();
+      }
+      undoManager.clearRedo();
+    });
+
+    it('should undo task creation', () => {
+      const task = tasks.createTask({ title: 'Test Task' });
+      expect(tasks.getTask(task.id)).toBeDefined();
+      expect(undoManager.canUndo()).toBe(true);
+
+      undoManager.undo();
+      expect(tasks.getTask(task.id)).toBeUndefined();
+      expect(undoManager.canRedo()).toBe(true);
+    });
+
+    it('should redo task creation', () => {
+      const task = tasks.createTask({ title: 'Test Task' });
+      undoManager.undo();
+      expect(tasks.getTask(task.id)).toBeUndefined();
+
+      undoManager.redo();
+      expect(tasks.getTask(task.id)).toBeDefined();
+      expect(tasks.getTask(task.id)?.title).toBe('Test Task');
+    });
+
+    it('should undo task update', () => {
+      const task = tasks.createTask({ title: 'Original' });
+      tasks.updateTask(task.id, { title: 'Updated' });
+      expect(tasks.getTask(task.id)?.title).toBe('Updated');
+
+      undoManager.undo();
+      expect(tasks.getTask(task.id)?.title).toBe('Original');
+    });
+
+    it('should undo task deletion', () => {
+      const task = tasks.createTask({ title: 'Test Task' });
+      tasks.deleteTask(task.id);
+      expect(tasks.getTask(task.id)).toBeUndefined();
+
+      undoManager.undo();
+      expect(tasks.getTask(task.id)).toBeDefined();
+      expect(tasks.getTask(task.id)?.title).toBe('Test Task');
+    });
+
+    it('should undo task toggle', () => {
+      const task = tasks.createTask({ completed: false });
+      tasks.toggleTask(task.id);
+      expect(tasks.getTask(task.id)?.completed).toBe(true);
+
+      undoManager.undo();
+      expect(tasks.getTask(task.id)?.completed).toBe(false);
+    });
+
+    it('should undo task move', () => {
+      const task = tasks.createTask({ listId: 'list-1' });
+      tasks.moveTask(task.id, { listId: 'list-2' });
+      expect(tasks.getTask(task.id)?.listId).toBe('list-2');
+
+      undoManager.undo();
+      expect(tasks.getTask(task.id)?.listId).toBe('list-1');
+    });
+
+    it('should undo task cancel', () => {
+      const task = tasks.createTask({ canceled: false });
+      tasks.cancelTask(task.id);
+      expect(tasks.getTask(task.id)?.canceled).toBe(true);
+
+      undoManager.undo();
+      expect(tasks.getTask(task.id)?.canceled).toBe(false);
+    });
+
+    it('should support multiple undo operations', () => {
+      const task1 = tasks.createTask({ title: 'Task 1' });
+      const task2 = tasks.createTask({ title: 'Task 2' });
+      const task3 = tasks.createTask({ title: 'Task 3' });
+
+      expect(tasks.getTask(task1.id)).toBeDefined();
+      expect(tasks.getTask(task2.id)).toBeDefined();
+      expect(tasks.getTask(task3.id)).toBeDefined();
+
+      undoManager.undo();
+      expect(tasks.getTask(task3.id)).toBeUndefined();
+      expect(tasks.getTask(task2.id)).toBeDefined();
+
+      undoManager.undo();
+      expect(tasks.getTask(task2.id)).toBeUndefined();
+      expect(tasks.getTask(task1.id)).toBeDefined();
+
+      undoManager.undo();
+      expect(tasks.getTask(task1.id)).toBeUndefined();
+    });
+
+    it('should clear redo stack when new operation occurs', () => {
+      const task1 = tasks.createTask({ title: 'Task 1' });
+      undoManager.undo();
+      expect(undoManager.canRedo()).toBe(true);
+
+      const task2 = tasks.createTask({ title: 'Task 2' });
+      expect(undoManager.canRedo()).toBe(false);
+      expect(undoManager.canUndo()).toBe(true);
     });
   });
 });

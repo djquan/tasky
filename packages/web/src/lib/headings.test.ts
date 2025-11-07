@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Heading, HeadingInput } from '@tasky/shared';
 import * as headings from './headings';
+import { undoManager } from './undo';
 
 // Mock yjs module
 const mockHeadingsMap = new Map<string, Heading>();
@@ -152,6 +153,56 @@ describe('headings.ts', () => {
       
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Heading not found'));
       consoleSpy.mockRestore();
+    });
+  });
+
+  describe('undo/redo integration', () => {
+    beforeEach(() => {
+      while (undoManager.canUndo()) {
+        undoManager.undo();
+      }
+      while (undoManager.canRedo()) {
+        undoManager.redo();
+      }
+      undoManager.clearRedo();
+    });
+
+    it('should undo heading creation', () => {
+      const heading = headings.createHeading({ listId: 'list-1', title: 'Test Heading' });
+      expect(headings.getHeading(heading.id)).toBeDefined();
+      expect(undoManager.canUndo()).toBe(true);
+
+      undoManager.undo();
+      expect(headings.getHeading(heading.id)).toBeUndefined();
+      expect(undoManager.canRedo()).toBe(true);
+    });
+
+    it('should undo heading update', () => {
+      const heading = headings.createHeading({ listId: 'list-1', title: 'Original' });
+      headings.updateHeading(heading.id, { title: 'Updated' });
+      expect(headings.getHeading(heading.id)?.title).toBe('Updated');
+
+      undoManager.undo();
+      expect(headings.getHeading(heading.id)?.title).toBe('Original');
+    });
+
+    it('should undo heading deletion', () => {
+      const heading = headings.createHeading({ listId: 'list-1', title: 'Test Heading' });
+      headings.deleteHeading(heading.id);
+      expect(headings.getHeading(heading.id)).toBeUndefined();
+
+      undoManager.undo();
+      expect(headings.getHeading(heading.id)).toBeDefined();
+      expect(headings.getHeading(heading.id)?.title).toBe('Test Heading');
+    });
+
+    it('should undo heading archive', () => {
+      const heading = headings.createHeading({ listId: 'list-1', archived: false });
+      headings.archiveHeading(heading.id);
+      expect(headings.getHeading(heading.id)?.archived).toBe(true);
+
+      undoManager.undo();
+      expect(headings.getHeading(heading.id)?.archived).toBe(false);
     });
   });
 });
