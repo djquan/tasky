@@ -113,7 +113,7 @@ describe('tags.ts', () => {
   describe('updateTag', () => {
     it('should update tag properties', async () => {
       const tag = tags.createTag({ name: 'Original' });
-      await new Promise(resolve => setTimeout(resolve, 1)); // Small delay to ensure timestamp difference
+      await new Promise(resolve => setTimeout(resolve, 2)); // Small delay to ensure timestamp difference
       tags.updateTag(tag.id, { name: 'Updated' });
       
       const updated = tags.getTag(tag.id);
