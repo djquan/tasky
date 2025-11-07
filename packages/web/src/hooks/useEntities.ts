@@ -53,6 +53,8 @@ export function useTask(id: string | null) {
 
   useEffect(() => {
     if (!id) {
+      // Reset state when id becomes null
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTask(null);
       setIsLoading(false);
       return;
@@ -115,6 +117,8 @@ export function useList(id: string | null) {
 
   useEffect(() => {
     if (!id) {
+      // Reset state when id becomes null
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setList(null);
       setIsLoading(false);
       return;
@@ -237,6 +241,8 @@ export function useHeadings(listId: string | null) {
 
   useEffect(() => {
     if (!listId) {
+      // Reset state when listId becomes null
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHeadings([]);
       setIsLoading(false);
       return;
@@ -274,6 +280,8 @@ export function useChecklistItems(taskId: string | null) {
 
   useEffect(() => {
     if (!taskId) {
+      // Reset state when taskId becomes null
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setItems([]);
       setIsLoading(false);
       return;

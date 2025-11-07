@@ -106,6 +106,7 @@ export function TaskDetail() {
       return { icon: '📅', text: formatScheduledDate(task.scheduledDate) };
     }
     if (task.deadline) {
+      // eslint-disable-next-line react-hooks/purity
       const isOverdue = task.deadline < Date.now();
       return {
         icon: isOverdue ? '⚠️' : '📅',

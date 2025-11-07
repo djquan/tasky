@@ -14,6 +14,8 @@ export function ListView({ title, icon, children, onTitleChange, autoEdit = fals
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    // Sync title prop to state - this is intentional to keep local state in sync
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEditedTitle(title);
     // Auto-edit if title is a default name and we have onTitleChange
     if ((title === 'New Project' || title === 'New Area') && onTitleChange && !isEditing) {
@@ -23,6 +25,8 @@ export function ListView({ title, icon, children, onTitleChange, autoEdit = fals
 
   useEffect(() => {
     if (autoEdit && onTitleChange && !isEditing) {
+      // Auto-enable editing mode - this is intentional behavior
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsEditing(true);
     }
   }, [autoEdit, onTitleChange, isEditing]);

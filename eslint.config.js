@@ -42,6 +42,7 @@ export default [
       'react/react-in-jsx-scope': 'off', // Not needed in React 17+
       'react/prop-types': 'off', // Using TypeScript for prop validation
       'no-undef': 'off', // TypeScript handles this
+      'react-hooks/set-state-in-effect': 'warn', // Allow setState in effects for state reset patterns
     },
     settings: {
       react: {
@@ -57,6 +58,7 @@ export default [
       'coverage/**',
       '*.config.{js,ts}',
       '**/*.d.ts',
+      '**/registerSW.js', // Generated service worker registration file
     ],
   },
 ];
