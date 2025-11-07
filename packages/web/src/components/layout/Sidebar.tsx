@@ -83,6 +83,7 @@ export function Sidebar() {
             onClick={() => setShowListTypePopup(!showListTypePopup)}
             className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
             title="Add List"
+            aria-label="Add new project or area"
           >
             <span className="text-lg">+</span>
           </button>
