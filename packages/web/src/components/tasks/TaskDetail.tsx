@@ -78,10 +78,8 @@ export function TaskDetail() {
   };
 
   const handleDeleteTask = () => {
-    if (confirm('Delete this task?')) {
-      deleteTask(task.id);
-      handleClose();
-    }
+    deleteTask(task.id);
+    handleClose();
   };
 
   return (

@@ -20,9 +20,7 @@ export function TaskRow({ task }: TaskRowProps) {
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm('Delete this task?')) {
-      deleteTask(task.id);
-    }
+    deleteTask(task.id);
   };
 
   const formatDeadline = (timestamp: number) => {
