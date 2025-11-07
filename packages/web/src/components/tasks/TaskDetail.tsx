@@ -74,19 +74,22 @@ export function TaskDetail() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               onBlur={handleSave}
-              className="w-full text-xl font-normal focus:outline-none bg-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-500 mb-4"
-              placeholder="Task title"
+              className="w-full text-2xl font-medium focus:outline-none bg-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 mb-3"
+              placeholder="New To-Do"
             />
 
             {/* Notes */}
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              onBlur={handleSave}
-              rows={3}
-              className="w-full px-3 py-2 border border-light-border dark:border-dark-border bg-transparent text-gray-700 dark:text-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-sm mb-4"
-              placeholder="Notes"
-            />
+            <div className="mb-4">
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Notes</label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                onBlur={handleSave}
+                rows={2}
+                className="w-full px-0 py-0 border-0 bg-transparent text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-0 text-sm resize-none"
+                placeholder=""
+              />
+            </div>
 
             {/* Icon Buttons Row */}
             <div className="flex items-center gap-2">

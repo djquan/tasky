@@ -19,105 +19,53 @@ export function ProjectAreaPicker({
   const activeProjects = projects.filter(p => !p.completed && !p.canceled);
   const activeAreas = areas;
 
-  const handleSelectProject = (id: string | null) => {
-    onChangeProject(id);
-    // Selecting a project clears direct area assignment (mutually exclusive)
-    if (id !== null) {
-      onChangeArea(null);
-    }
-  };
+  const currentListId = projectId || areaId;
 
-  const handleSelectArea = (id: string | null) => {
-    onChangeArea(id);
-    // Selecting an area clears project assignment (mutually exclusive)
-    if (id !== null) {
+  const handleSelectList = (id: string, type: 'project' | 'area') => {
+    if (type === 'project') {
+      onChangeProject(id);
+      onChangeArea(null);
+    } else {
+      onChangeArea(id);
       onChangeProject(null);
     }
   };
 
+  // Combine all lists with their type
+  const allLists = [
+    ...activeAreas.map(area => ({ ...area, listType: 'area' as const, icon: '🗂️' })),
+    ...activeProjects.map(project => ({ ...project, listType: 'project' as const, icon: '📁' }))
+  ];
+
   return (
-    <div className="space-y-4">
-      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-xs text-gray-700 dark:text-gray-300">
-        <strong>Note:</strong> A task can belong to either a project OR an area, not both.
-      </div>
-
-      {/* Project selector */}
-      <div>
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-          Project {projectId && '(task will be in this project)'}
-        </label>
-        <div className="space-y-1 max-h-48 overflow-y-auto">
+    <div>
+      <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+        List
+      </label>
+      <div className="space-y-1 max-h-64 overflow-y-auto">
+        {allLists.map(list => (
           <button
             type="button"
-            onClick={() => handleSelectProject(null)}
-            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-              projectId === null
+            key={list.id}
+            onClick={() => handleSelectList(list.id, list.listType)}
+            className={`w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-2 ${
+              currentListId === list.id
                 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium'
                 : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
-            None
+            <span>{list.icon}</span>
+            <span className="flex-1">{list.title}</span>
+            {currentListId === list.id && (
+              <span className="ml-auto text-blue-600 dark:text-blue-400">✓</span>
+            )}
           </button>
-          {activeProjects.map(project => (
-            <button
-              type="button"
-              key={project.id}
-              onClick={() => handleSelectProject(project.id)}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                projectId === project.id
-                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              {project.title}
-              {project.parentListId && (
-                <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
-                  ({activeAreas.find(a => a.id === project.parentListId)?.title})
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2 text-gray-400 dark:text-gray-500">
-        <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
-        <span className="text-xs">OR</span>
-        <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
-      </div>
-
-      {/* Area selector */}
-      <div>
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-          Area {areaId && '(task will be directly in this area)'}
-        </label>
-        <div className="space-y-1">
-          <button
-            type="button"
-            onClick={() => handleSelectArea(null)}
-            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-              areaId === null
-                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            None
-          </button>
-          {activeAreas.map(area => (
-            <button
-              type="button"
-              key={area.id}
-              onClick={() => handleSelectArea(area.id)}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                areaId === area.id
-                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              {area.title}
-            </button>
-          ))}
-        </div>
+        ))}
+        {allLists.length === 0 && (
+          <p className="text-xs text-gray-500 dark:text-gray-400 italic py-2 px-3">
+            No lists available
+          </p>
+        )}
       </div>
     </div>
   );

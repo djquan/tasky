@@ -77,16 +77,16 @@ export function WhenPicker({ value, scheduledDate, onChange, onScheduledDateChan
             type="button"
             key={option.value}
             onClick={() => onChange(option.value)}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+            className={`w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs transition-colors ${
               value === option.value && !scheduledDate
                 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium'
                 : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
-            <span className="text-lg">{option.icon}</span>
+            <span className="text-base">{option.icon}</span>
             <div className="flex-1 text-left">
-              <div>{option.label}</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">{option.description}</div>
+              <div className="text-xs">{option.label}</div>
+              <div className="text-[10px] text-gray-500 dark:text-gray-400">{option.description}</div>
             </div>
             {value === option.value && !scheduledDate && (
               <span className="ml-auto text-blue-600 dark:text-blue-400">✓</span>
@@ -99,12 +99,12 @@ export function WhenPicker({ value, scheduledDate, onChange, onScheduledDateChan
       {onScheduledDateChange && (
         <div className="pt-3 border-t border-light-border dark:border-dark-border">
           <label className="block mb-2">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">📅 Specific Date</span>
+            <span className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">📅 Specific Date</span>
             <input
               type="date"
               value={formatDate(scheduledDate ?? null)}
               onChange={handleDateChange}
-              className="w-full px-3 py-2 border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-hover text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-sm"
+              className="w-full px-3 py-1.5 border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-hover text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-xs"
             />
           </label>
 
@@ -126,7 +126,7 @@ export function WhenPicker({ value, scheduledDate, onChange, onScheduledDateChan
             <button
               type="button"
               onClick={() => onScheduledDateChange(null)}
-              className="w-full mt-2 px-3 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+              className="w-full mt-2 px-3 py-1.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
             >
               Clear Date
             </button>

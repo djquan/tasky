@@ -6,7 +6,7 @@ import { createList } from '../../lib/lists';
 import type { ViewType, ListType } from '@tasky/shared';
 
 export function Sidebar() {
-  const { currentView, setView } = useNavigation();
+  const { currentView, contextId, setView } = useNavigation();
   const { counts } = useSmartListCounts();
   const { areas } = useAreas();
   const { projects } = useProjects();
@@ -50,7 +50,7 @@ export function Sidebar() {
             <button
               key={view}
               onClick={() => setView(view)}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
+              className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors ${
                 currentView === view
                   ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium'
                   : 'text-gray-700 dark:text-gray-200 hover:bg-light-hover dark:hover:bg-dark-hover'
@@ -130,8 +130,8 @@ export function Sidebar() {
                     <button
                       key={project.id}
                       onClick={() => setView('project', project.id)}
-                      className={`w-full text-left px-2 py-1 rounded text-sm transition-colors flex items-center gap-2 ${
-                        currentView === 'project' && project.id
+                      className={`w-full text-left px-2 py-1 rounded text-xs transition-colors flex items-center gap-2 ${
+                        currentView === 'project' && contextId === project.id
                           ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                           : 'text-gray-600 dark:text-gray-300 hover:bg-light-hover dark:hover:bg-dark-hover'
                       }`}
@@ -152,8 +152,8 @@ export function Sidebar() {
                     <div key={area.id}>
                       <button
                         onClick={() => setView('area', area.id)}
-                        className={`w-full text-left px-2 py-1 rounded text-sm font-medium transition-colors flex items-center gap-2 ${
-                          currentView === 'area' && area.id
+                        className={`w-full text-left px-2 py-1 rounded text-xs font-medium transition-colors flex items-center gap-2 ${
+                          currentView === 'area' && contextId === area.id
                             ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                             : 'text-gray-700 dark:text-gray-200 hover:bg-light-hover dark:hover:bg-dark-hover'
                         }`}
@@ -168,8 +168,8 @@ export function Sidebar() {
                             <button
                               key={project.id}
                               onClick={() => setView('project', project.id)}
-                              className={`w-full text-left px-2 py-1 rounded text-sm transition-colors flex items-center gap-2 ${
-                                currentView === 'project' && project.id
+                              className={`w-full text-left px-2 py-1 rounded text-xs transition-colors flex items-center gap-2 ${
+                                currentView === 'project' && contextId === project.id
                                   ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                                   : 'text-gray-600 dark:text-gray-300 hover:bg-light-hover dark:hover:bg-dark-hover'
                               }`}
@@ -196,7 +196,7 @@ export function Sidebar() {
       <nav className="p-4">
         <button
           onClick={() => setView('logbook')}
-          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
+          className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors ${
             currentView === 'logbook'
               ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium'
               : 'text-gray-700 dark:text-gray-200 hover:bg-light-hover dark:hover:bg-dark-hover'
