@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, RefObject, useMemo } from 'react';
+import { useState, useEffect, useRef, RefObject, useMemo, useCallback } from 'react';
 import { useNavigation } from '../../store/navigation';
 import { useTasks } from '../../hooks/useEntities';
 import { useSortedLists } from '../../hooks/useEntities';
@@ -49,7 +49,9 @@ export function SearchPopup({ buttonRef }: SearchPopupProps) {
   // Reset query and selected index when popup opens
   useEffect(() => {
     if (searchPopupOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setQuery('');
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedIndex(0);
     }
   }, [searchPopupOpen]);
@@ -86,6 +88,7 @@ export function SearchPopup({ buttonRef }: SearchPopupProps) {
   // Perform fuzzy search
   useEffect(() => {
     if (!query.trim()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResults([]);
       return;
     }
@@ -138,8 +141,34 @@ export function SearchPopup({ buttonRef }: SearchPopupProps) {
 
     // Limit to top 10 results
     setResults(searchResults.slice(0, 10));
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedIndex(0);
   }, [query, tasks, lists]);
+
+  const handleSelectResult = useCallback((result: SearchResult) => {
+    if (result.type === 'task') {
+      const task = result.item as Task;
+      selectTask(task.id);
+
+      // Navigate to appropriate view based on task properties
+      if (task.listId) {
+        const list = listsMap.get(task.listId);
+        if (list) {
+          setView(list.type === 'project' ? 'project' : 'area', list.id);
+        } else {
+          setView('inbox');
+        }
+      } else {
+        setView('inbox');
+      }
+
+      closeSearchPopup();
+    } else {
+      const list = result.item as List;
+      setView(list.type === 'project' ? 'project' : 'area', list.id);
+      closeSearchPopup();
+    }
+  }, [selectTask, setView, closeSearchPopup, listsMap]);
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -175,7 +204,7 @@ export function SearchPopup({ buttonRef }: SearchPopupProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [searchPopupOpen, results, selectedIndex, closeSearchPopup]);
+  }, [searchPopupOpen, results, selectedIndex, closeSearchPopup, handleSelectResult]);
 
   // Close when clicking outside
   useEffect(() => {
@@ -196,31 +225,6 @@ export function SearchPopup({ buttonRef }: SearchPopupProps) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [searchPopupOpen, closeSearchPopup, buttonRef]);
-
-  const handleSelectResult = (result: SearchResult) => {
-    if (result.type === 'task') {
-      const task = result.item as Task;
-      selectTask(task.id);
-
-      // Navigate to appropriate view based on task properties
-      if (task.listId) {
-        const list = listsMap.get(task.listId);
-        if (list) {
-          setView(list.type === 'project' ? 'project' : 'area', list.id);
-        } else {
-          setView('inbox');
-        }
-      } else {
-        setView('inbox');
-      }
-
-      closeSearchPopup();
-    } else {
-      const list = result.item as List;
-      setView(list.type === 'project' ? 'project' : 'area', list.id);
-      closeSearchPopup();
-    }
-  };
 
   if (!searchPopupOpen || !position) return null;
 
