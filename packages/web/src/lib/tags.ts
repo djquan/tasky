@@ -1,5 +1,6 @@
 import { generateId, now, type Tag, type TagInput } from '@tasky/shared';
 import { tagsMap, tagsSortOrder } from './yjs';
+import { DEFAULT_TAG_COLOR } from '../constants';
 
 /**
  * Create a new tag
@@ -12,7 +13,7 @@ export function createTag(input: Partial<TagInput>): Tag {
     id,
     name: input.name || '',
     parentId: input.parentId ?? null,
-    color: input.color || '#3B82F6', // Default blue
+    color: input.color || DEFAULT_TAG_COLOR,
     createdAt: timestamp,
     updatedAt: timestamp,
     sortOrder: input.sortOrder || timestamp
