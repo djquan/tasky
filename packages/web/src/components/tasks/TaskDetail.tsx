@@ -1,22 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useTask, useChecklistItems } from '../../hooks/useEntities';
+import { useTask } from '../../hooks/useEntities';
 import { useNavigation } from '../../store/navigation';
-import { updateTask, deleteTask, toggleTask } from '../../lib/tasks';
-import { createChecklistItem, toggleChecklistItem, deleteChecklistItem } from '../../lib/checklists';
+import { updateTask, deleteTask } from '../../lib/tasks';
 import { WhenPicker } from '../pickers/WhenPicker';
-import { DatePicker } from '../pickers/DatePicker';
-import { TagPicker } from '../pickers/TagPicker';
 import { ProjectAreaPicker } from '../pickers/ProjectAreaPicker';
 import type { WhenValue } from '@tasky/shared';
 
 export function TaskDetail() {
   const { selectedTaskId, selectTask } = useNavigation();
   const { task } = useTask(selectedTaskId);
-  const { items: checklistItems } = useChecklistItems(selectedTaskId);
 
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
-  const [newChecklistItem, setNewChecklistItem] = useState('');
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
   useEffect(() => {
@@ -45,36 +40,13 @@ export function TaskDetail() {
     setActiveSection(null);
   };
 
-  const handleDeadlineChange = (deadline: number | null) => {
-    updateTask(task.id, { deadline });
-    setActiveSection(null);
-  };
-
   const handleScheduledDateChange = (scheduledDate: number | null) => {
     updateTask(task.id, { scheduledDate });
     setActiveSection(null);
   };
 
-  const handleTagsChange = (tags: string[]) => {
-    updateTask(task.id, { tags });
-  };
-
   const handleListChange = (listId: string | null) => {
     updateTask(task.id, { listId });
-  };
-
-  const handleAddChecklistItem = () => {
-    if (!newChecklistItem.trim()) return;
-
-    createChecklistItem({
-      taskId: task.id,
-      title: newChecklistItem.trim(),
-      completed: false,
-      canceled: false,
-      sortOrder: Date.now()
-    });
-
-    setNewChecklistItem('');
   };
 
   const handleDeleteTask = () => {

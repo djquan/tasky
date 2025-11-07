@@ -6,7 +6,7 @@ import { createList } from '../../lib/lists';
 import type { ViewType, ListType } from '@tasky/shared';
 
 export function Sidebar() {
-  const { currentView, setView, toggleQuickEntry } = useNavigation();
+  const { currentView, setView } = useNavigation();
   const { counts } = useSmartListCounts();
   const { areas } = useAreas();
   const { projects } = useProjects();
