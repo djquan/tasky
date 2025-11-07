@@ -24,7 +24,7 @@ export function TaskList({ tasks, emptyMessage = 'No tasks' }: TaskListProps) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-0">
       {tasks.map(task => (
         <TaskRow key={task.id} task={task} />
       ))}

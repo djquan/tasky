@@ -9,6 +9,7 @@ import {
   getSomedayTasks,
   getUpcomingTasks,
   getLogbookTasks,
+  getTrashTasks,
   getProjectTasks,
   getAreaTasks,
   getTasksByTag,
@@ -48,6 +49,9 @@ export function useSmartList(view: ViewType, contextId?: string) {
           break;
         case 'logbook':
           filtered = getLogbookTasks();
+          break;
+        case 'trash':
+          filtered = getTrashTasks();
           break;
         case 'project':
           filtered = contextId ? getProjectTasks(contextId) : [];
@@ -151,6 +155,13 @@ export function useLogbook() {
 }
 
 /**
+ * Get trash tasks
+ */
+export function useTrash() {
+  return useSmartList('trash');
+}
+
+/**
  * Get tasks for a specific project
  */
 export function useProjectTasks(projectId: string) {
@@ -181,7 +192,8 @@ export function useSmartListCounts() {
     anytime: 0,
     someday: 0,
     upcoming: 0,
-    logbook: 0
+    logbook: 0,
+    trash: 0
   });
   const [isLoading, setIsLoading] = useState(true);
 

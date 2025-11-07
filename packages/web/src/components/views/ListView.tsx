@@ -5,16 +5,27 @@ interface ListViewProps {
   icon?: string;
   children: ReactNode;
   onTitleChange?: (newTitle: string) => void;
+  autoEdit?: boolean;
 }
 
-export function ListView({ title, icon, children, onTitleChange }: ListViewProps) {
+export function ListView({ title, icon, children, onTitleChange, autoEdit = false }: ListViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(title);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setEditedTitle(title);
-  }, [title]);
+    // Auto-edit if title is a default name and we have onTitleChange
+    if ((title === 'New Project' || title === 'New Area') && onTitleChange && !isEditing) {
+      setIsEditing(true);
+    }
+  }, [title, onTitleChange, isEditing]);
+
+  useEffect(() => {
+    if (autoEdit && onTitleChange && !isEditing) {
+      setIsEditing(true);
+    }
+  }, [autoEdit, onTitleChange, isEditing]);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {

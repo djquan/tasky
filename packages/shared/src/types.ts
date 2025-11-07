@@ -7,7 +7,7 @@ export type WhenValue =
   | 'evening'    // Scheduled for this evening (subset of today)
   | 'anytime'    // No specific schedule, actionable now
   | 'someday';   // Intentionally deferred, not actionable
-  // Note: 'inbox' is not a when value - it's calculated as absence of when/dates/project/area
+// Note: 'inbox' is not a when value - it's calculated as absence of when/dates/project/area
 
 export type ViewType =
   | 'inbox'
@@ -16,6 +16,7 @@ export type ViewType =
   | 'someday'
   | 'upcoming'
   | 'logbook'
+  | 'trash'
   | 'area'
   | 'project'
   | 'tag';
@@ -123,6 +124,7 @@ export interface SmartListCounts {
   someday: number;
   upcoming: number;
   logbook: number;
+  trash: number;
 }
 
 // Legacy type alias for backward compatibility during migration

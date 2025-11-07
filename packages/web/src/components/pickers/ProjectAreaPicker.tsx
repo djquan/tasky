@@ -21,13 +21,27 @@ export function ProjectAreaPicker({
 
   const currentListId = projectId || areaId;
 
-  const handleSelectList = (id: string, type: 'project' | 'area') => {
-    if (type === 'project') {
-      onChangeProject(id);
+  const handleSelectList = (id: string, type: 'project' | 'area', e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+
+    // Toggle: if clicking the same list, deselect it
+    const isCurrentlySelected = (type === 'project' && projectId === id) || (type === 'area' && areaId === id);
+
+    if (isCurrentlySelected) {
+      // Deselecting - clear both
+      onChangeProject(null);
       onChangeArea(null);
     } else {
-      onChangeArea(id);
-      onChangeProject(null);
+      // Selecting a new list - just set the new value, don't clear the other type
+      // The new value will overwrite the old one
+      if (type === 'project') {
+        onChangeProject(id);
+      } else {
+        onChangeArea(id);
+      }
     }
   };
 
@@ -47,12 +61,18 @@ export function ProjectAreaPicker({
           <button
             type="button"
             key={list.id}
-            onClick={() => handleSelectList(list.id, list.listType)}
-            className={`w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-2 ${
-              currentListId === list.id
-                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              handleSelectList(list.id, list.listType, e);
+            }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+            }}
+            className={`w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-2 ${currentListId === list.id
+              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium'
+              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
           >
             <span>{list.icon}</span>
             <span className="flex-1">{list.title}</span>

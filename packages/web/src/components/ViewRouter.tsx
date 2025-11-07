@@ -5,6 +5,7 @@ import { AnytimeView } from './views/AnytimeView';
 import { SomedayView } from './views/SomedayView';
 import { UpcomingView } from './views/UpcomingView';
 import { LogbookView } from './views/LogbookView';
+import { TrashView } from './views/TrashView';
 import { ProjectView } from './views/ProjectView';
 import { AreaView } from './views/AreaView';
 
@@ -24,6 +25,8 @@ export function ViewRouter() {
       return <UpcomingView />;
     case 'logbook':
       return <LogbookView />;
+    case 'trash':
+      return <TrashView />;
     case 'project':
       return <ProjectView />;
     case 'area':

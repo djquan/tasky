@@ -60,7 +60,12 @@ export function ProjectView() {
   }, {} as Record<string, Task[]>);
 
   return (
-    <ListView title={project.title} icon="📁" onTitleChange={handleTitleChange}>
+    <ListView
+      title={project.title}
+      icon="📁"
+      onTitleChange={handleTitleChange}
+      autoEdit={project.title === 'New Project'}
+    >
       {/* Project notes */}
       {project.notes && (
         <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">

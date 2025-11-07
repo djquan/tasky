@@ -241,12 +241,28 @@ export function getUpcomingTasks(): Task[] {
 /**
  * Get tasks for Logbook view
  *
- * Criteria: completed=true OR canceled=true
+ * Criteria: completed=true (but not canceled)
  */
 export function getLogbookTasks(): Task[] {
   const tasks = getAllTasks();
   return tasks
-    .filter(task => task.completed || task.canceled)
+    .filter(task => task.completed && !task.canceled)
+    .sort((a, b) => {
+      const aCompleted = a.completedAt || a.updatedAt;
+      const bCompleted = b.completedAt || b.updatedAt;
+      return bCompleted - aCompleted; // Newest first
+    });
+}
+
+/**
+ * Get tasks for Trash view
+ *
+ * Criteria: canceled=true
+ */
+export function getTrashTasks(): Task[] {
+  const tasks = getAllTasks();
+  return tasks
+    .filter(task => task.canceled)
     .sort((a, b) => {
       const aCompleted = a.completedAt || a.updatedAt;
       const bCompleted = b.completedAt || b.updatedAt;
@@ -350,11 +366,16 @@ export function getSmartListCounts() {
     anytime: 0,
     someday: 0,
     upcoming: 0,
-    logbook: 0
+    logbook: 0,
+    trash: 0
   };
 
   for (const task of tasks) {
-    if (task.completed || task.canceled) {
+    if (task.canceled) {
+      counts.trash++;
+      continue;
+    }
+    if (task.completed) {
       counts.logbook++;
       continue;
     }
