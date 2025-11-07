@@ -276,7 +276,7 @@ export function getTrashTasks(): Task[] {
 export function getListTasks(listId: string): Task[] {
   const tasks = getAllTasks();
   return tasks
-    .filter(task => task.listId === listId && !task.canceled)
+    .filter(task => task.listId === listId && !task.canceled && !task.completed)
     .sort((a, b) => a.sortOrder - b.sortOrder);
 }
 

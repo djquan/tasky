@@ -7,15 +7,25 @@ import {
   somedaySortOrder,
   listTaskSortOrders
 } from './yjs';
+import { undoManager } from './undo';
+import {
+  CreateTaskCommand,
+  UpdateTaskCommand,
+  DeleteTaskCommand,
+  ToggleTaskCommand,
+  CancelTaskCommand,
+  MoveTaskCommand,
+  ReorderTaskCommand
+} from './undo/commands/task';
 
 // ============================================================================
 // CRUD Operations
 // ============================================================================
 
 /**
- * Create a new task
+ * Internal implementation - create task without undo tracking
  */
-export function createTask(input: Partial<TaskInput>): Task {
+function _createTaskInternal(input: Partial<TaskInput>): Task {
   const id = generateId();
   const timestamp = now();
 
@@ -47,6 +57,41 @@ export function createTask(input: Partial<TaskInput>): Task {
 }
 
 /**
+ * Create a new task
+ */
+export function createTask(input: Partial<TaskInput>): Task {
+  if (undoManager.getIsUndoing() || undoManager.getIsRedoing()) {
+    return _createTaskInternal(input);
+  }
+
+  // Create task object but don't add to map yet - command will do that
+  const id = generateId();
+  const timestamp = now();
+  const task: Task = {
+    id,
+    title: input.title || '',
+    notes: input.notes || '',
+    when: input.when || 'anytime',
+    scheduledDate: input.scheduledDate ?? null,
+    deadline: input.deadline ?? null,
+    tags: input.tags || [],
+    checklistItems: input.checklistItems || [],
+    listId: input.listId ?? null,
+    headingId: input.headingId ?? null,
+    completed: input.completed || false,
+    canceled: input.canceled || false,
+    createdAt: timestamp,
+    completedAt: null,
+    updatedAt: timestamp,
+    sortOrder: input.sortOrder || timestamp
+  };
+
+  const command = new CreateTaskCommand(task);
+  undoManager.execute(command);
+  return task;
+}
+
+/**
  * Get a task by ID
  */
 export function getTask(id: string): Task | undefined {
@@ -54,9 +99,9 @@ export function getTask(id: string): Task | undefined {
 }
 
 /**
- * Update a task
+ * Internal implementation - update task without undo tracking
  */
-export function updateTask(id: string, updates: Partial<Task>): void {
+function _updateTaskInternal(id: string, updates: Partial<Task>): void {
   const task = tasksMap.get(id);
   if (!task) {
     console.warn(`[updateTask] Task not found: ${id}`);
@@ -85,9 +130,29 @@ export function updateTask(id: string, updates: Partial<Task>): void {
 }
 
 /**
- * Delete a task
+ * Update a task
  */
-export function deleteTask(id: string): void {
+export function updateTask(id: string, updates: Partial<Task>): void {
+  const task = tasksMap.get(id);
+  if (!task) {
+    console.warn(`[updateTask] Task not found: ${id}`);
+    return;
+  }
+
+  if (undoManager.getIsUndoing() || undoManager.getIsRedoing()) {
+    _updateTaskInternal(id, updates);
+    return;
+  }
+
+  const oldTask = { ...task };
+  const command = new UpdateTaskCommand(oldTask, updates);
+  undoManager.execute(command);
+}
+
+/**
+ * Internal implementation - delete task without undo tracking
+ */
+function _deleteTaskInternal(id: string): void {
   const task = tasksMap.get(id);
   if (!task) {
     console.warn(`[deleteTask] Task not found: ${id}`);
@@ -99,9 +164,28 @@ export function deleteTask(id: string): void {
 }
 
 /**
- * Toggle task completion
+ * Delete a task
  */
-export function toggleTask(id: string): void {
+export function deleteTask(id: string): void {
+  const task = tasksMap.get(id);
+  if (!task) {
+    console.warn(`[deleteTask] Task not found: ${id}`);
+    return;
+  }
+
+  if (undoManager.getIsUndoing() || undoManager.getIsRedoing()) {
+    _deleteTaskInternal(id);
+    return;
+  }
+
+  const command = new DeleteTaskCommand(task);
+  undoManager.execute(command);
+}
+
+/**
+ * Internal implementation - toggle task without undo tracking
+ */
+function _toggleTaskInternal(id: string): void {
   const task = tasksMap.get(id);
   if (!task) {
     console.warn(`[toggleTask] Task not found: ${id}`);
@@ -120,6 +204,25 @@ export function toggleTask(id: string): void {
 }
 
 /**
+ * Toggle task completion
+ */
+export function toggleTask(id: string): void {
+  const task = tasksMap.get(id);
+  if (!task) {
+    console.warn(`[toggleTask] Task not found: ${id}`);
+    return;
+  }
+
+  if (undoManager.getIsUndoing() || undoManager.getIsRedoing()) {
+    _toggleTaskInternal(id);
+    return;
+  }
+
+  const command = new ToggleTaskCommand(task);
+  undoManager.execute(command);
+}
+
+/**
  * Move task to a different container (when/list)
  */
 export function moveTask(
@@ -130,13 +233,25 @@ export function moveTask(
     headingId?: string | null;
   }
 ): void {
-  updateTask(id, target);
+  const task = tasksMap.get(id);
+  if (!task) {
+    console.warn(`[moveTask] Task not found: ${id}`);
+    return;
+  }
+
+  if (undoManager.getIsUndoing() || undoManager.getIsRedoing()) {
+    _updateTaskInternal(id, target);
+    return;
+  }
+
+  const command = new MoveTaskCommand(task, target);
+  undoManager.execute(command);
 }
 
 /**
- * Cancel a task (soft delete)
+ * Internal implementation - cancel task without undo tracking
  */
-export function cancelTask(id: string): void {
+function _cancelTaskInternal(id: string): void {
   const task = tasksMap.get(id);
   if (!task) {
     console.warn(`[cancelTask] Task not found: ${id}`);
@@ -151,6 +266,25 @@ export function cancelTask(id: string): void {
   };
 
   tasksMap.set(id, updated);
+}
+
+/**
+ * Cancel a task (soft delete)
+ */
+export function cancelTask(id: string): void {
+  const task = tasksMap.get(id);
+  if (!task) {
+    console.warn(`[cancelTask] Task not found: ${id}`);
+    return;
+  }
+
+  if (undoManager.getIsUndoing() || undoManager.getIsRedoing()) {
+    _cancelTaskInternal(id);
+    return;
+  }
+
+  const command = new CancelTaskCommand(task);
+  undoManager.execute(command);
 }
 
 // ============================================================================
@@ -213,9 +347,9 @@ function removeFromSortOrder(task: Task): void {
 }
 
 /**
- * Reorder task within its container
+ * Internal implementation - reorder task without undo tracking
  */
-export function reorderTask(id: string, newIndex: number): void {
+function _reorderTaskInternal(id: string, newIndex: number): void {
   const task = tasksMap.get(id);
   if (!task) return;
 
@@ -263,5 +397,26 @@ export function reorderTask(id: string, newIndex: number): void {
 
   if (task.listId) {
     listTaskSortOrders.set(task.listId, newArray);
+  }
+}
+
+/**
+ * Reorder task within its container
+ */
+export function reorderTask(id: string, newIndex: number): void {
+  const task = tasksMap.get(id);
+  if (!task) return;
+
+  if (undoManager.getIsUndoing() || undoManager.getIsRedoing()) {
+    _reorderTaskInternal(id, newIndex);
+    return;
+  }
+
+  try {
+    const command = new ReorderTaskCommand(task, newIndex);
+    undoManager.execute(command);
+  } catch (error) {
+    // If command creation fails (e.g., task not in sort order), fall back to internal
+    _reorderTaskInternal(id, newIndex);
   }
 }

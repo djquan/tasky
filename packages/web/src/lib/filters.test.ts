@@ -73,7 +73,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getInboxTasks();
-      
+
       expect(result).toHaveLength(1);
       expect(result[0].listId).toBeNull();
       expect(result[0].when).toBe('anytime');
@@ -86,7 +86,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getInboxTasks();
-      
+
       expect(result).toHaveLength(0);
     });
 
@@ -97,7 +97,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getInboxTasks();
-      
+
       expect(result).toHaveLength(0);
     });
 
@@ -109,7 +109,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getInboxTasks();
-      
+
       expect(result).toHaveLength(0);
     });
 
@@ -120,7 +120,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getInboxTasks();
-      
+
       expect(result).toHaveLength(0);
     });
 
@@ -133,7 +133,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getInboxTasks();
-      
+
       expect(result[0].createdAt).toBe(3000);
       expect(result[1].createdAt).toBe(2000);
       expect(result[2].createdAt).toBe(1000);
@@ -149,7 +149,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getTodayTasks();
-      
+
       expect(result).toHaveLength(1);
       expect(result[0].when).toBe('today');
     });
@@ -161,7 +161,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getTodayTasks();
-      
+
       expect(result).toHaveLength(1);
       expect(result[0].when).toBe('evening');
     });
@@ -173,7 +173,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getTodayTasks();
-      
+
       expect(result).toHaveLength(1);
     });
 
@@ -184,7 +184,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getTodayTasks();
-      
+
       expect(result).toHaveLength(1);
     });
 
@@ -195,7 +195,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getTodayTasks();
-      
+
       expect(result).toHaveLength(1);
     });
 
@@ -207,7 +207,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getTodayTasks();
-      
+
       expect(result).toHaveLength(0);
     });
 
@@ -220,7 +220,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getTodayTasks();
-      
+
       expect(result[0].when).toBe('today');
       expect(result[1].when).toBe('today');
       expect(result[2].when).toBe('evening');
@@ -235,7 +235,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getTodayTasks();
-      
+
       expect(result[0].deadline).toBe(today);
       expect(result[1].deadline).toBe(tomorrow);
       expect(result[2].deadline).toBeNull();
@@ -252,7 +252,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getThisEveningTasks();
-      
+
       expect(result).toHaveLength(1);
       expect(result[0].when).toBe('evening');
     });
@@ -267,7 +267,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getAnytimeTasks();
-      
+
       expect(result).toHaveLength(1);
       expect(result[0].listId).toBe('list-1');
     });
@@ -279,7 +279,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getAnytimeTasks();
-      
+
       expect(result).toHaveLength(0);
     });
 
@@ -290,7 +290,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getAnytimeTasks();
-      
+
       expect(result).toHaveLength(0);
     });
 
@@ -302,7 +302,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getAnytimeTasks();
-      
+
       expect(result).toHaveLength(0);
     });
 
@@ -313,7 +313,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getAnytimeTasks();
-      
+
       expect(result).toHaveLength(0);
     });
 
@@ -324,7 +324,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getAnytimeTasks();
-      
+
       expect(result).toHaveLength(0);
     });
   });
@@ -338,7 +338,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getSomedayTasks();
-      
+
       expect(result).toHaveLength(1);
       expect(result[0].when).toBe('someday');
     });
@@ -351,7 +351,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getSomedayTasks();
-      
+
       expect(result).toHaveLength(0);
     });
 
@@ -363,7 +363,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getSomedayTasks();
-      
+
       expect(result[0].createdAt).toBe(3000);
     });
   });
@@ -377,7 +377,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getUpcomingTasks();
-      
+
       expect(result).toHaveLength(1);
       expect(result[0].scheduledDate).toBe(nextWeek);
     });
@@ -390,7 +390,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getUpcomingTasks();
-      
+
       expect(result).toHaveLength(1);
       expect(result[0].deadline).toBe(nextWeek);
     });
@@ -403,7 +403,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getUpcomingTasks();
-      
+
       expect(result).toHaveLength(0);
     });
 
@@ -416,7 +416,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getUpcomingTasks();
-      
+
       expect(result[0].deadline).toBe(tomorrow);
       expect(result[1].scheduledDate).toBe(nextWeek);
     });
@@ -431,7 +431,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getLogbookTasks();
-      
+
       expect(result).toHaveLength(1);
       expect(result[0].completed).toBe(true);
     });
@@ -444,7 +444,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getLogbookTasks();
-      
+
       expect(result).toHaveLength(1);
       expect(result[0].completed).toBe(true);
       expect(result[0].canceled).toBe(false);
@@ -458,7 +458,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getLogbookTasks();
-      
+
       expect(result[0].completedAt).toBe(3000);
     });
   });
@@ -472,7 +472,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getListTasks('list-1');
-      
+
       expect(result).toHaveLength(1);
       expect(result[0].listId).toBe('list-1');
     });
@@ -484,7 +484,18 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getListTasks('list-1');
-      
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('should exclude completed tasks', () => {
+      const tasks = [
+        createMockTask({ listId: 'list-1', completed: true }),
+      ];
+      vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
+
+      const result = filters.getListTasks('list-1');
+
       expect(result).toHaveLength(0);
     });
 
@@ -497,7 +508,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getListTasks('list-1');
-      
+
       expect(result[0].sortOrder).toBe(100);
       expect(result[1].sortOrder).toBe(200);
       expect(result[2].sortOrder).toBe(300);
@@ -513,7 +524,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllLists).mockReturnValue(lists);
 
       const result = filters.getChildLists('area-1');
-      
+
       expect(result).toHaveLength(1);
       expect(result[0].parentListId).toBe('area-1');
     });
@@ -526,7 +537,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllLists).mockReturnValue(lists);
 
       const result = filters.getChildLists('area-1');
-      
+
       expect(result).toHaveLength(0);
     });
   });
@@ -541,7 +552,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getTasksByTag('tag-1');
-      
+
       expect(result).toHaveLength(1);
       expect(result[0].tags).toContain('tag-1');
     });
@@ -554,7 +565,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getTasksByTag('tag-1');
-      
+
       expect(result).toHaveLength(0);
     });
   });
@@ -569,7 +580,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllLists).mockReturnValue(lists);
 
       const result = filters.getActiveLists();
-      
+
       expect(result).toHaveLength(2);
     });
 
@@ -581,7 +592,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllLists).mockReturnValue(lists);
 
       const result = filters.getActiveLists('project');
-      
+
       expect(result).toHaveLength(1);
       expect(result[0].type).toBe('project');
     });
@@ -597,7 +608,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllLists).mockReturnValue(lists);
 
       const result = filters.getCompletedLists();
-      
+
       expect(result).toHaveLength(2);
     });
   });
@@ -611,7 +622,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getSmartListCounts();
-      
+
       expect(result.inbox).toBe(2);
     });
 
@@ -623,7 +634,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getSmartListCounts();
-      
+
       expect(result.today).toBe(2);
     });
 
@@ -636,7 +647,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getSmartListCounts();
-      
+
       expect(result.logbook).toBe(2);
       expect(result.trash).toBe(1);
     });
@@ -649,7 +660,7 @@ describe('filters.ts', () => {
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getSmartListCounts();
-      
+
       const total = result.inbox + result.today + result.anytime + result.someday + result.upcoming;
       expect(total).toBe(2);
     });
