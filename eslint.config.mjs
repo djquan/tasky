@@ -46,19 +46,21 @@ export default [
     },
     settings: {
       react: {
-        version: 'detect',
+        version: '19.2',
       },
     },
   },
   {
     ignores: [
-      'node_modules/**',
-      'dist/**',
-      'dev-dist/**',
-      'coverage/**',
-      '*.config.{js,ts}',
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/dev-dist/**',
+      '**/coverage/**',
+      '**/*.config.{js,ts,mjs}',
       '**/*.d.ts',
-      '**/registerSW.js', // Generated service worker registration file
+      '**/registerSW.js',
+      '**/sw.js',
+      '**/workbox-*.js',
     ],
   },
 ];
