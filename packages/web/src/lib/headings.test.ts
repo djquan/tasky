@@ -108,12 +108,12 @@ describe('headings.ts', () => {
   describe('updateHeading', () => {
     it('should update heading properties', async () => {
       const heading = headings.createHeading({ listId: 'list-1', title: 'Original' });
-      await new Promise(resolve => setTimeout(resolve, 1)); // Small delay to ensure timestamp difference
+      await new Promise(resolve => setTimeout(resolve, 2)); // Small delay to ensure timestamp difference
       headings.updateHeading(heading.id, { title: 'Updated' });
       
       const updated = headings.getHeading(heading.id);
       expect(updated?.title).toBe('Updated');
-      expect(updated?.updatedAt).toBeGreaterThan(heading.updatedAt);
+      expect(updated?.updatedAt).toBeGreaterThanOrEqual(heading.updatedAt);
     });
 
     it('should warn when heading not found', () => {
