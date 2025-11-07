@@ -48,7 +48,10 @@ export const getProjectHeadings = getListHeadings;
  */
 export function updateHeading(id: string, updates: Partial<Heading>): void {
   const heading = headingsMap.get(id);
-  if (!heading) return;
+  if (!heading) {
+    console.warn(`[updateHeading] Heading not found: ${id}`);
+    return;
+  }
 
   const updated: Heading = {
     ...heading,
@@ -74,7 +77,10 @@ export function deleteHeading(id: string): void {
  */
 export function archiveHeading(id: string): void {
   const heading = headingsMap.get(id);
-  if (!heading) return;
+  if (!heading) {
+    console.warn(`[archiveHeading] Heading not found: ${id}`);
+    return;
+  }
 
   const updated: Heading = {
     ...heading,

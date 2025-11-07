@@ -1,22 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useTask, useChecklistItems } from '../../hooks/useEntities';
+import { useTask } from '../../hooks/useEntities';
 import { useNavigation } from '../../store/navigation';
-import { updateTask, deleteTask, toggleTask } from '../../lib/tasks';
-import { createChecklistItem, toggleChecklistItem, deleteChecklistItem } from '../../lib/checklists';
+import { updateTask, deleteTask } from '../../lib/tasks';
 import { WhenPicker } from '../pickers/WhenPicker';
-import { DatePicker } from '../pickers/DatePicker';
-import { TagPicker } from '../pickers/TagPicker';
 import { ProjectAreaPicker } from '../pickers/ProjectAreaPicker';
 import type { WhenValue } from '@tasky/shared';
 
 export function TaskDetail() {
   const { selectedTaskId, selectTask } = useNavigation();
   const { task } = useTask(selectedTaskId);
-  const { items: checklistItems } = useChecklistItems(selectedTaskId);
 
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
-  const [newChecklistItem, setNewChecklistItem] = useState('');
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
   useEffect(() => {
@@ -45,43 +40,18 @@ export function TaskDetail() {
     setActiveSection(null);
   };
 
-  const handleDeadlineChange = (deadline: number | null) => {
-    updateTask(task.id, { deadline });
-    setActiveSection(null);
-  };
-
   const handleScheduledDateChange = (scheduledDate: number | null) => {
     updateTask(task.id, { scheduledDate });
     setActiveSection(null);
-  };
-
-  const handleTagsChange = (tags: string[]) => {
-    updateTask(task.id, { tags });
   };
 
   const handleListChange = (listId: string | null) => {
     updateTask(task.id, { listId });
   };
 
-  const handleAddChecklistItem = () => {
-    if (!newChecklistItem.trim()) return;
-
-    createChecklistItem({
-      taskId: task.id,
-      title: newChecklistItem.trim(),
-      completed: false,
-      canceled: false,
-      sortOrder: Date.now()
-    });
-
-    setNewChecklistItem('');
-  };
-
   const handleDeleteTask = () => {
-    if (confirm('Delete this task?')) {
-      deleteTask(task.id);
-      handleClose();
-    }
+    deleteTask(task.id);
+    handleClose();
   };
 
   return (
@@ -127,6 +97,7 @@ export function TaskDetail() {
                   onClick={() => setActiveSection(activeSection === 'when' ? null : 'when')}
                   className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-light-hover dark:hover:bg-dark-hover rounded-lg transition-colors"
                   title="Schedule"
+                  aria-label="Schedule task"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -156,6 +127,7 @@ export function TaskDetail() {
                   onClick={() => setActiveSection(activeSection === 'project' ? null : 'project')}
                   className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-light-hover dark:hover:bg-dark-hover rounded-lg transition-colors"
                   title="Project"
+                  aria-label="Assign to project or area"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />

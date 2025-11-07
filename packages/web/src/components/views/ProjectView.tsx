@@ -11,7 +11,7 @@ import type { Task } from '@tasky/shared';
 export function ProjectView() {
   const { contextId } = useNavigation();
   const { project, isLoading: projectLoading } = useProject(contextId);
-  const { headings, isLoading: headingsLoading } = useHeadings(contextId);
+  const { headings } = useHeadings(contextId);
   const { tasks, isLoading: tasksLoading } = useProjectTasks(contextId || '');
   const [newHeadingTitle, setNewHeadingTitle] = useState('');
   const [showNewHeading, setShowNewHeading] = useState(false);
@@ -82,11 +82,7 @@ export function ProjectView() {
             <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-300">{heading.title}</h2>
             <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
             <button
-              onClick={() => {
-                if (confirm('Delete this heading and move its tasks to the top?')) {
-                  deleteHeading(heading.id);
-                }
-              }}
+              onClick={() => deleteHeading(heading.id)}
               className="text-xs text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400"
             >
               Delete

@@ -98,7 +98,6 @@ export function getInboxTasks(): Task[] {
  */
 export function getTodayTasks(): Task[] {
   const tasks = getAllTasks();
-  const today = getToday();
 
   return tasks
     .filter(task => {
@@ -343,7 +342,6 @@ export const getCompletedProjects = () => getCompletedLists('project');
  */
 export function getSmartListCounts() {
   const tasks = getAllTasks();
-  const today = getToday();
   const tomorrow = getTomorrow();
 
   const counts = {
@@ -381,8 +379,13 @@ export function getSmartListCounts() {
       continue;
     }
 
-    // Inbox
-    if (task.when === 'inbox' && !task.listId) {
+    // Inbox (tasks with no list, no dates, when='anytime')
+    if (
+      task.when === 'anytime' &&
+      !task.listId &&
+      !task.scheduledDate &&
+      !task.deadline
+    ) {
       counts.inbox++;
       continue;
     }
@@ -393,11 +396,8 @@ export function getSmartListCounts() {
       continue;
     }
 
-    // Anytime
-    if (
-      task.when === 'anytime' ||
-      (task.when === 'inbox' && task.listId)
-    ) {
+    // Anytime (tasks with listId not already counted)
+    if (task.listId && task.when === 'anytime') {
       counts.anytime++;
     }
   }

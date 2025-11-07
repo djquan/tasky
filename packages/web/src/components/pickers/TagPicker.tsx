@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTags } from '../../hooks/useEntities';
 import { createTag } from '../../lib/tags';
+import { DEFAULT_TAG_COLOR } from '../../constants';
 
 interface TagPickerProps {
   selectedTags: string[];
@@ -26,7 +27,7 @@ export function TagPicker({ selectedTags, onChange }: TagPickerProps) {
     const tag = createTag({
       name: newTagName.trim(),
       parentId: null,
-      color: '#3B82F6', // Default blue
+      color: DEFAULT_TAG_COLOR,
       sortOrder: Date.now()
     });
 

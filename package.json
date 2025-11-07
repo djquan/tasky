@@ -7,7 +7,10 @@
     "dev": "pnpm --filter web dev",
     "build": "pnpm --filter web build",
     "preview": "pnpm --filter web preview",
-    "type-check": "pnpm -r type-check"
+    "type-check": "pnpm -r type-check",
+    "test": "pnpm -r test",
+    "test:coverage": "pnpm -r test:coverage",
+    "test:ui": "pnpm --filter web test:ui"
   },
   "keywords": [
     "todo",
@@ -19,5 +22,9 @@
     "node": ">=18",
     "pnpm": ">=8"
   },
-  "packageManager": "pnpm@8.15.0"
+  "packageManager": "pnpm@8.15.0",
+  "devDependencies": {
+    "@vitest/ui": "^4.0.7",
+    "vitest": "^4.0.7"
+  }
 }

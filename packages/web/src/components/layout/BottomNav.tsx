@@ -1,5 +1,6 @@
 import { useNavigation } from '../../store/navigation';
 import { useSmartListCounts } from '../../hooks/useSmartLists';
+import { MAX_BADGE_COUNT } from '../../constants';
 import type { ViewType } from '@tasky/shared';
 
 export function BottomNav() {
@@ -30,7 +31,7 @@ export function BottomNav() {
               <span className="text-xl">{icon}</span>
               {count > 0 && (
                 <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-medium bg-blue-600 dark:bg-blue-500 text-white rounded-full px-1">
-                  {count > 99 ? '99+' : count}
+                  {count > MAX_BADGE_COUNT ? `${MAX_BADGE_COUNT}+` : count}
                 </span>
               )}
             </div>

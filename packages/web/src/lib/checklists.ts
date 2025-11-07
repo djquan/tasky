@@ -46,7 +46,10 @@ export function getTaskChecklistItems(taskId: string): ChecklistItem[] {
  */
 export function updateChecklistItem(id: string, updates: Partial<ChecklistItem>): void {
   const item = checklistItemsMap.get(id);
-  if (!item) return;
+  if (!item) {
+    console.warn(`[updateChecklistItem] Checklist item not found: ${id}`);
+    return;
+  }
 
   const updated: ChecklistItem = {
     ...item,
@@ -62,7 +65,10 @@ export function updateChecklistItem(id: string, updates: Partial<ChecklistItem>)
  */
 export function toggleChecklistItem(id: string): void {
   const item = checklistItemsMap.get(id);
-  if (!item) return;
+  if (!item) {
+    console.warn(`[toggleChecklistItem] Checklist item not found: ${id}`);
+    return;
+  }
 
   const updated: ChecklistItem = {
     ...item,
@@ -85,7 +91,10 @@ export function deleteChecklistItem(id: string): void {
  */
 export function cancelChecklistItem(id: string): void {
   const item = checklistItemsMap.get(id);
-  if (!item) return;
+  if (!item) {
+    console.warn(`[cancelChecklistItem] Checklist item not found: ${id}`);
+    return;
+  }
 
   const updated: ChecklistItem = {
     ...item,

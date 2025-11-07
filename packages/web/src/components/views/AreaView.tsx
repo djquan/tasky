@@ -12,7 +12,7 @@ export function AreaView() {
   const { contextId, setView } = useNavigation();
   const { area, isLoading: areaLoading } = useArea(contextId);
   const { tasks, isLoading: tasksLoading } = useAreaTasks(contextId || '');
-  const { projects: allProjects } = useProjects();
+  useProjects(); // Projects hook keeps data in sync
   const [newProjectTitle, setNewProjectTitle] = useState('');
   const [showNewProject, setShowNewProject] = useState(false);
 
