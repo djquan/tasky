@@ -415,7 +415,7 @@ export function reorderTask(id: string, newIndex: number): void {
   try {
     const command = new ReorderTaskCommand(task, newIndex);
     undoManager.execute(command);
-  } catch (error) {
+  } catch {
     // If command creation fails (e.g., task not in sort order), fall back to internal
     _reorderTaskInternal(id, newIndex);
   }

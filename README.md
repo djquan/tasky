@@ -25,15 +25,17 @@ pnpm preview
 - ✅ CRDT-based (Yjs) for conflict-free updates
 - ✅ IndexedDB persistence
 - ✅ Basic todo CRUD (add, edit, complete, delete)
-- 🚧 Future: Multi-device sync
+- ✅ Multi-device sync (Y-Sweet) - optional, self-hosted
 
 ## Architecture
 
 **Monorepo** (pnpm workspaces):
+
 - `packages/web` - React PWA (Vite + Tailwind)
 - `packages/shared` - Shared types/utils
+- `packages/server` - Y-Sweet sync server (optional)
 
-**Stack**: React, TypeScript, Vite, Tailwind, Yjs, IndexedDB
+**Stack**: React, TypeScript, Vite, Tailwind, Yjs, IndexedDB, Y-Sweet
 
 See [PLAN.md](./PLAN.md) for detailed architecture and roadmap.
 
@@ -53,8 +55,25 @@ tasky/
 └── package.json         # Root package with workspace scripts
 ```
 
-## Development
+## Multi-Device Sync (Optional)
 
-All data stored locally in browser IndexedDB. No server required.
+Tasky supports optional multi-device synchronization via Y-Sweet:
 
-Built with local-first principles - designed to add optional sync server later without breaking changes.
+1. **Start sync server**:
+
+   ```bash
+   cd packages/server
+   docker-compose up -d
+   ```
+
+2. **Enable sync in web app** (`packages/web/.env`):
+
+   ```env
+   VITE_SYNC_ENABLED=true
+   VITE_YSWEET_URL=ws://localhost:1234
+   VITE_YSWEET_TOKEN_URL=http://localhost:3001/token
+   ```
+
+3. **Restart dev server** - sync initializes automatically
+
+See `packages/server/README.md` for detailed setup instructions.

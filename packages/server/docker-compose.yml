@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  y-sweet:
+    image: ghcr.io/jamsocket/y-sweet:latest
+    ports:
+      - "1234:8080" # Map host:1234 to container:8080 (Y-Sweet's default port)
+    environment:
+      - YSWEET_STORAGE_PATH=/data
+      # Generate a secure key with: openssl rand -base64 32
+      # For development, using a fixed key. CHANGE THIS IN PRODUCTION!
+      - SESSION_BACKEND_KEY=dev-key-change-in-production-use-openssl-rand-base64-32
+    volumes:
+      - y-sweet-data:/data
+    restart: unless-stopped
+
+  token-server:
+    build: .
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      # Internal URL for token server to connect to Y-Sweet (Docker network)
+      - YSWEET_URL=http://y-sweet:8080
+      # External URL that clients use to connect to Y-Sweet (host network)
+      - YSWEET_CLIENT_URL=ws://localhost:1234
+      - DOCUMENT_ID=tasky-main
+    depends_on:
+      - y-sweet
+    restart: unless-stopped
+
+volumes:
+  y-sweet-data:

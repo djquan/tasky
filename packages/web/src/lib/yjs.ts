@@ -7,6 +7,8 @@ import type {
   Tag,
   ChecklistItem
 } from '@tasky/shared';
+import { createYSweetProvider, isSyncEnabled, type SyncProvider } from './sync';
+import { getSyncSettings } from './settings';
 
 // ============================================================================
 // Yjs Document Setup
@@ -15,9 +17,62 @@ import type {
 // Create the shared Yjs document
 export const ydoc = new Y.Doc();
 
-// Create IndexedDB persistence provider
+// Create IndexedDB persistence provider (always enabled for local-first)
 // Note: Using same DB name 'tasky-db' but schema will be incompatible with old version
 export const provider = new IndexeddbPersistence('tasky-db', ydoc);
+
+// Y-Sweet sync provider (optional, enabled via settings)
+export let syncProvider: SyncProvider | null = null;
+
+/**
+ * Initialize Y-Sweet sync provider if enabled
+ */
+export async function initializeSync(): Promise<void> {
+  if (!isSyncEnabled()) {
+    return;
+  }
+
+  const settings = getSyncSettings();
+  const { tokenUrl } = settings;
+
+  if (!tokenUrl) {
+    console.warn('[Yjs] Sync enabled but missing token URL');
+    return;
+  }
+
+  try {
+    syncProvider = createYSweetProvider(ydoc, tokenUrl);
+    await syncProvider.connect();
+    console.log('[Yjs] Y-Sweet sync provider initialized');
+  } catch (error) {
+    console.error('[Yjs] Failed to initialize Y-Sweet sync:', error);
+    // Continue without sync - IndexedDB will still work
+  }
+}
+
+/**
+ * Reinitialize sync (useful when settings change)
+ */
+export async function reinitializeSync(): Promise<void> {
+  // Disconnect existing provider if any
+  if (syncProvider) {
+    syncProvider.disconnect();
+    syncProvider = null;
+  }
+
+  // Initialize with new settings
+  await initializeSync();
+}
+
+/**
+ * Get sync connection state
+ */
+export function getSyncState(): 'disabled' | 'disconnected' | 'connecting' | 'connected' | 'error' {
+  if (!isSyncEnabled() || !syncProvider) {
+    return 'disabled';
+  }
+  return syncProvider.connectionState;
+}
 
 // ============================================================================
 // Entity Maps (Y.Map for key-value storage with CRDT properties)
@@ -61,15 +116,22 @@ export const listTaskSortOrders = ydoc.getMap<string[]>('listTaskSortOrders');
 
 /**
  * Wait for IndexedDB provider to finish syncing
+ * Also waits for Y-Sweet sync if enabled
  */
-export const waitForSync = (): Promise<void> => {
-  return new Promise((resolve) => {
+export const waitForSync = async (): Promise<void> => {
+  // Wait for IndexedDB first (always enabled)
+  await new Promise<void>((resolve) => {
     if (provider.synced) {
       resolve();
     } else {
       provider.once('synced', () => resolve());
     }
   });
+
+  // Initialize sync provider if enabled
+  if (isSyncEnabled() && !syncProvider) {
+    await initializeSync();
+  }
 };
 
 /**

@@ -51,7 +51,7 @@ export function SearchPopup({ buttonRef }: SearchPopupProps) {
     if (searchPopupOpen) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setQuery('');
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+       
       setSelectedIndex(0);
     }
   }, [searchPopupOpen]);
@@ -141,7 +141,7 @@ export function SearchPopup({ buttonRef }: SearchPopupProps) {
 
     // Limit to top 10 results
     setResults(searchResults.slice(0, 10));
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setSelectedIndex(0);
   }, [query, tasks, lists]);
 

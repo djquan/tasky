@@ -92,22 +92,22 @@ export function QuickEntry() {
       if (currentView === 'today') {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setWhen('today');
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+         
         setScheduledDate(null);
       } else {
         // Reset to defaults if not on Today view
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+         
         setWhen('anytime');
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+         
         setScheduledDate(null);
       }
 
       // Prefill list if on Project or Area view
       if (currentView === 'project' || currentView === 'area') {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+         
         setListId(contextId);
       } else {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+         
         setListId(null);
       }
 

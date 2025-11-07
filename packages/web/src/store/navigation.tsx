@@ -12,6 +12,7 @@ interface NavigationState {
   listPopupOpen: boolean;
   searchPopupOpen: boolean;
   quickEntryOpen: boolean;
+  settingsOpen: boolean;
 }
 
 interface NavigationActions {
@@ -30,6 +31,8 @@ interface NavigationActions {
   openSearchPopup: () => void;
   closeSearchPopup: () => void;
   toggleQuickEntry: () => void;
+  openSettings: () => void;
+  closeSettings: () => void;
 }
 
 type NavigationContextType = NavigationState & NavigationActions;
@@ -47,6 +50,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const [listPopupOpen, setListPopupOpen] = useState(false);
   const [searchPopupOpen, setSearchPopupOpen] = useState(false);
   const [quickEntryOpen, setQuickEntryOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const setView = (view: ViewType, id: string | null = null) => {
     setCurrentView(view);
@@ -167,6 +171,8 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   };
 
   const toggleQuickEntry = () => setQuickEntryOpen(!quickEntryOpen);
+  const openSettings = () => setSettingsOpen(true);
+  const closeSettings = () => setSettingsOpen(false);
 
   return (
     <NavigationContext.Provider
@@ -181,6 +187,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
         listPopupOpen,
         searchPopupOpen,
         quickEntryOpen,
+        settingsOpen,
         setView,
         toggleSidebar,
         selectTask,
@@ -195,7 +202,9 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
         closeListPopup,
         openSearchPopup,
         closeSearchPopup,
-        toggleQuickEntry
+        toggleQuickEntry,
+        openSettings,
+        closeSettings
       }}
     >
       {children}

@@ -391,7 +391,7 @@ export function moveListInSortOrder(listId: string, newIndex: number): void {
   try {
     const command = new MoveListInSortOrderCommand(listId, newIndex);
     undoManager.execute(command);
-  } catch (error) {
+  } catch {
     _moveListInSortOrderInternal(listId, newIndex);
   }
 }
