@@ -436,17 +436,18 @@ describe('filters.ts', () => {
       expect(result[0].completed).toBe(true);
     });
 
-    it('should return canceled tasks', () => {
+    it('should exclude canceled tasks (those go to trash)', () => {
       const tasks = [
-        createMockTask({ canceled: true }),
-        createMockTask({ canceled: false }),
+        createMockTask({ completed: true, canceled: false }),
+        createMockTask({ completed: false, canceled: true }),
       ];
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getLogbookTasks();
       
       expect(result).toHaveLength(1);
-      expect(result[0].canceled).toBe(true);
+      expect(result[0].completed).toBe(true);
+      expect(result[0].canceled).toBe(false);
     });
 
     it('should sort by completedAt newest first', () => {
@@ -626,16 +627,18 @@ describe('filters.ts', () => {
       expect(result.today).toBe(2);
     });
 
-    it('should count logbook tasks correctly', () => {
+    it('should count logbook tasks correctly (completed but not canceled)', () => {
       const tasks = [
         createMockTask({ completed: true }),
-        createMockTask({ canceled: true }),
+        createMockTask({ completed: true }),
+        createMockTask({ canceled: true }), // goes to trash, not logbook
       ];
       vi.mocked(yjs.getAllTasks).mockReturnValue(tasks);
 
       const result = filters.getSmartListCounts();
       
       expect(result.logbook).toBe(2);
+      expect(result.trash).toBe(1);
     });
 
     it('should not double-count tasks', () => {
