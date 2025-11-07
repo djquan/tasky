@@ -6,8 +6,10 @@ import {
   tagsMap,
   headingsMap,
   checklistItemsMap,
+  listsSortOrder,
   waitForSync
 } from '../lib/yjs';
+import { getSortedLists } from '../lib/lists';
 
 // ============================================================================
 // Entity Hooks
@@ -167,6 +169,36 @@ export function useAreas() {
 export function useArea(id: string | null) {
   const { list, isLoading } = useList(id);
   return { area: list, isLoading };
+}
+
+/**
+ * Subscribe to sorted lists (ordered by listsSortOrder array)
+ */
+export function useSortedLists() {
+  const [lists, setLists] = useState<List[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const updateLists = () => {
+      setLists(getSortedLists());
+    };
+
+    waitForSync().then(() => {
+      updateLists();
+      setIsLoading(false);
+    });
+
+    // Subscribe to both listsMap and listsSortOrder changes
+    listsMap.observe(updateLists);
+    listsSortOrder.observe(updateLists);
+
+    return () => {
+      listsMap.unobserve(updateLists);
+      listsSortOrder.unobserve(updateLists);
+    };
+  }, []);
+
+  return { lists, isLoading };
 }
 
 /**

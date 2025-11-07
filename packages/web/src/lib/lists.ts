@@ -1,5 +1,5 @@
 import { generateId, now, type List, type ListInput, type ListType } from '@tasky/shared';
-import { listsMap, listsSortOrder, listTaskSortOrders } from './yjs';
+import { listsMap, listsSortOrder, listTaskSortOrders, getAllLists } from './yjs';
 
 /**
  * Create a new list (project or area)
@@ -27,7 +27,34 @@ export function createList(input: Partial<ListInput>): List {
   };
 
   listsMap.set(id, list);
-  listsSortOrder.push([id]);
+
+  // Insert into sort order at appropriate position
+  if (input.parentListId) {
+    // Insert after parent area
+    const parentIndex = listsSortOrder.toArray().indexOf(input.parentListId);
+    if (parentIndex !== -1) {
+      // Find the position after the parent and all its current children
+      const sortArray = listsSortOrder.toArray();
+      let insertIndex = parentIndex + 1;
+
+      for (let i = parentIndex + 1; i < sortArray.length; i++) {
+        const item = listsMap.get(sortArray[i]);
+        if (item && item.parentListId === input.parentListId) {
+          insertIndex = i + 1;
+        } else {
+          break;
+        }
+      }
+
+      listsSortOrder.insert(insertIndex, [id]);
+    } else {
+      // Parent not found in sort order, append
+      listsSortOrder.push([id]);
+    }
+  } else {
+    // Top-level item - append to end
+    listsSortOrder.push([id]);
+  }
 
   // Initialize empty task sort order for this list
   listTaskSortOrders.set(id, []);
@@ -59,6 +86,11 @@ export function updateList(id: string, updates: Partial<List>): void {
   };
 
   listsMap.set(id, updated);
+
+  // If parentListId changed, update sort order
+  if (updates.parentListId !== undefined && updates.parentListId !== list.parentListId) {
+    moveListToArea(id, updates.parentListId);
+  }
 }
 
 /**
@@ -72,11 +104,7 @@ export function deleteList(id: string): void {
   }
 
   // Remove from sort order
-  const sortArray = listsSortOrder.toArray();
-  const index = sortArray.indexOf(id);
-  if (index !== -1) {
-    listsSortOrder.delete(index, 1);
-  }
+  removeListFromSortOrder(id);
 
   // Remove task sort order
   listTaskSortOrders.delete(id);
@@ -167,4 +195,277 @@ export function getAllProjects(): List[] {
  */
 export function getAllAreas(): List[] {
   return getListsByType('area');
+}
+
+// ============================================================================
+// Sort Order Utilities
+// ============================================================================
+
+/**
+ * Get lists ordered by sort order array, grouped by hierarchy
+ * Returns a flat array with areas first, followed by their child projects
+ */
+export function getSortedLists(): List[] {
+  const allLists = getAllLists();
+  const activeLists = allLists.filter(list => !list.completed && !list.canceled);
+  const sortArray = listsSortOrder.toArray();
+
+  // Create a map for quick lookup
+  const listMap = new Map(activeLists.map(list => [list.id, list]));
+
+  // Filter sort array to only include active lists
+  const sortedIds = sortArray.filter(id => listMap.has(id));
+
+  // Add any active lists that aren't in sort order (shouldn't happen, but handle gracefully)
+  const missingIds = activeLists
+    .filter(list => !sortedIds.includes(list.id))
+    .map(list => list.id);
+
+  // Combine sorted IDs with missing IDs
+  const allSortedIds = [...sortedIds, ...missingIds];
+
+  // Return lists in sort order
+  return allSortedIds
+    .map(id => listMap.get(id))
+    .filter((list): list is List => list !== undefined);
+}
+
+/**
+ * Get the index of a list in the sort order array
+ */
+function getListSortIndex(listId: string): number {
+  return listsSortOrder.toArray().indexOf(listId);
+}
+
+/**
+ * Move a list to a new position in the sort order array
+ * @param listId - ID of the list to move
+ * @param newIndex - Target index in the sort order array (before removal)
+ */
+export function moveListInSortOrder(listId: string, newIndex: number): void {
+  const currentIndex = getListSortIndex(listId);
+  if (currentIndex === -1) {
+    console.warn(`[moveListInSortOrder] List not found in sort order: ${listId}`);
+    return;
+  }
+
+  // If already at the target position, do nothing
+  if (currentIndex === newIndex) {
+    return;
+  }
+
+  // Remove from current position
+  listsSortOrder.delete(currentIndex, 1);
+
+  // Calculate adjusted index after removal
+  // newIndex is the desired position BEFORE removal
+  // After removal, indices shift:
+  // - Items after currentIndex shift down by 1
+  // - Items at/before currentIndex stay the same
+  let adjustedIndex: number;
+  if (currentIndex < newIndex) {
+    // Dragging down: newIndex was after currentIndex
+    // After removal, newIndex becomes newIndex - 1
+    // But if newIndex was "insert after target", we still want that position
+    adjustedIndex = newIndex - 1;
+  } else {
+    // Dragging up: newIndex was before currentIndex
+    // After removal, newIndex stays the same
+    adjustedIndex = newIndex;
+  }
+
+  // Clamp to valid range
+  const maxIndex = listsSortOrder.length;
+  adjustedIndex = Math.max(0, Math.min(adjustedIndex, maxIndex));
+
+  // Insert at new position
+  listsSortOrder.insert(adjustedIndex, [listId]);
+}
+
+/**
+ * Move a project into an area (update parentListId and reposition in sort array)
+ * @param listId - ID of the list to move
+ * @param areaId - ID of the area to move into, or null to move to top level
+ * @param targetIndex - Optional target index in sortedLists for positioning (used when un-nesting)
+ */
+export function moveListToArea(listId: string, areaId: string | null, targetIndex?: number): void {
+  const list = listsMap.get(listId);
+  if (!list) {
+    console.warn(`[moveListToArea] List not found: ${listId}`);
+    return;
+  }
+
+  // Prevent invalid operations
+  if (list.type === 'area' && areaId !== null) {
+    console.warn(`[moveListToArea] Cannot move area into another area`);
+    return;
+  }
+
+  // Prevent circular references
+  if (areaId !== null) {
+    const area = listsMap.get(areaId);
+    if (!area || area.type !== 'area') {
+      console.warn(`[moveListToArea] Invalid area ID: ${areaId}`);
+      return;
+    }
+
+    // Check for circular reference (area being moved into its own child)
+    let currentParentId = area.parentListId;
+    while (currentParentId !== null) {
+      if (currentParentId === listId) {
+        console.warn(`[moveListToArea] Circular reference detected`);
+        return;
+      }
+      const parent = listsMap.get(currentParentId);
+      if (!parent) break;
+      currentParentId = parent.parentListId;
+    }
+  }
+
+  // Update parentListId directly (avoid calling updateList to prevent circular dependency)
+  const updated: List = {
+    ...list,
+    parentListId: areaId,
+    updatedAt: now()
+  };
+  listsMap.set(listId, updated);
+
+  // Reposition in sort array
+  const currentIndex = getListSortIndex(listId);
+  if (currentIndex === -1) {
+    console.warn(`[moveListToArea] List not found in sort order: ${listId}`);
+    return;
+  }
+
+  if (areaId === null) {
+    // Moving to top level
+    let insertIndex: number;
+
+    if (targetIndex !== undefined) {
+      // Use provided target index
+      insertIndex = targetIndex;
+    } else {
+      // Find position after last top-level item
+      const sortArray = listsSortOrder.toArray();
+      insertIndex = sortArray.length;
+
+      // Find the last top-level item (no parentListId)
+      for (let i = sortArray.length - 1; i >= 0; i--) {
+        const item = listsMap.get(sortArray[i]);
+        if (item && !item.parentListId) {
+          insertIndex = i + 1;
+          break;
+        }
+      }
+    }
+
+    // Remove from current position and insert at new position
+    listsSortOrder.delete(currentIndex, 1);
+    const adjustedIndex = currentIndex < insertIndex ? insertIndex - 1 : insertIndex;
+    listsSortOrder.insert(adjustedIndex, [listId]);
+  } else {
+    // Moving into an area - position right after the area
+    const areaIndex = getListSortIndex(areaId);
+    if (areaIndex === -1) {
+      console.warn(`[moveListToArea] Area not found in sort order: ${areaId}`);
+      return;
+    }
+
+    // Find the position after the area and all its current children
+    const sortArray = listsSortOrder.toArray();
+    let insertIndex = areaIndex + 1;
+
+    // Find the last child of this area
+    for (let i = areaIndex + 1; i < sortArray.length; i++) {
+      const item = listsMap.get(sortArray[i]);
+      if (item && item.parentListId === areaId) {
+        insertIndex = i + 1;
+      } else if (item && !item.parentListId) {
+        // Hit a top-level item, stop here
+        break;
+      } else if (item && item.parentListId !== areaId) {
+        // Hit an item from a different area, stop here
+        break;
+      }
+    }
+
+    // Remove from current position and insert at new position
+    listsSortOrder.delete(currentIndex, 1);
+    const adjustedIndex = currentIndex < insertIndex ? insertIndex - 1 : insertIndex;
+    listsSortOrder.insert(adjustedIndex, [listId]);
+  }
+}
+
+/**
+ * Remove a list from the sort order array
+ */
+export function removeListFromSortOrder(listId: string): void {
+  const index = getListSortIndex(listId);
+  if (index !== -1) {
+    listsSortOrder.delete(index, 1);
+  }
+}
+
+/**
+ * Ensure sort order integrity - rebuild sort array from existing lists if corrupted
+ * This is a migration helper that should be called if sort order gets out of sync
+ */
+export function ensureSortOrderIntegrity(): void {
+  const allLists = getAllLists();
+  const activeLists = allLists.filter(list => !list.completed && !list.canceled);
+  const sortArray = listsSortOrder.toArray();
+
+  // Check if all active lists are in sort order
+  const missingIds = activeLists.filter(list => !sortArray.includes(list.id));
+  const orphanedIds = sortArray.filter(id => !activeLists.find(list => list.id === id));
+
+  if (missingIds.length === 0 && orphanedIds.length === 0) {
+    return; // Sort order is intact
+  }
+
+  // Remove orphaned IDs
+  orphanedIds.forEach(id => {
+    const index = sortArray.indexOf(id);
+    if (index !== -1) {
+      listsSortOrder.delete(index, 1);
+    }
+  });
+
+  // Rebuild sort order: areas first (by creation), then projects grouped by area
+  const areas = activeLists.filter(list => list.type === 'area' && !list.parentListId);
+  const topLevelProjects = activeLists.filter(list => list.type === 'project' && !list.parentListId);
+
+  // Sort areas and projects by their current position in sort array, or by createdAt
+  const sortById = (a: List, b: List) => {
+    const aIndex = sortArray.indexOf(a.id);
+    const bIndex = sortArray.indexOf(b.id);
+    if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+    if (aIndex !== -1) return -1;
+    if (bIndex !== -1) return 1;
+    return a.createdAt - b.createdAt;
+  };
+
+  const sortedAreas = [...areas].sort(sortById);
+  const sortedTopLevelProjects = [...topLevelProjects].sort(sortById);
+
+  // Clear and rebuild
+  listsSortOrder.delete(0, listsSortOrder.length);
+
+  // Add areas first
+  sortedAreas.forEach(area => {
+    listsSortOrder.push([area.id]);
+
+    // Add projects under this area
+    const areaProjects = activeLists
+      .filter(list => list.type === 'project' && list.parentListId === area.id)
+      .sort(sortById);
+    areaProjects.forEach(project => {
+      listsSortOrder.push([project.id]);
+    });
+  });
+
+  // Add remaining top-level projects
+  sortedTopLevelProjects.forEach(project => {
+    listsSortOrder.push([project.id]);
+  });
 }

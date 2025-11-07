@@ -1,4 +1,4 @@
-import { useProjects, useAreas } from '../../hooks/useEntities';
+import { useSortedLists } from '../../hooks/useEntities';
 
 interface ProjectAreaPickerProps {
   projectId: string | null;
@@ -13,11 +13,9 @@ export function ProjectAreaPicker({
   onChangeProject,
   onChangeArea
 }: ProjectAreaPickerProps) {
-  const { projects } = useProjects();
-  const { areas } = useAreas();
+  const { lists: sortedLists } = useSortedLists();
 
-  const activeProjects = projects.filter(p => !p.completed && !p.canceled);
-  const activeAreas = areas;
+  const activeProjects = sortedLists.filter(p => p.type === 'project' && !p.completed && !p.canceled);
 
   const currentListId = projectId || areaId;
 
@@ -45,11 +43,42 @@ export function ProjectAreaPicker({
     }
   };
 
-  // Combine all lists with their type
-  const allLists = [
-    ...activeAreas.map(area => ({ ...area, listType: 'area' as const, icon: '🗂️' })),
-    ...activeProjects.map(project => ({ ...project, listType: 'project' as const, icon: '📁' }))
-  ];
+  // Build hierarchical list structure from sorted lists
+  const allLists: Array<{ id: string; title: string; listType: 'project' | 'area'; icon: string; level: number }> = [];
+
+  for (const list of sortedLists) {
+    if (list.completed || list.canceled) continue;
+
+    if (list.type === 'area') {
+      allLists.push({
+        id: list.id,
+        title: list.title,
+        listType: 'area',
+        icon: '🗂️',
+        level: 0
+      });
+      // Add child projects
+      const children = activeProjects.filter(p => p.parentListId === list.id);
+      for (const child of children) {
+        allLists.push({
+          id: child.id,
+          title: child.title,
+          listType: 'project',
+          icon: '📁',
+          level: 1
+        });
+      }
+    } else if (!list.parentListId) {
+      // Top-level project
+      allLists.push({
+        id: list.id,
+        title: list.title,
+        listType: 'project',
+        icon: '📁',
+        level: 0
+      });
+    }
+  }
 
   return (
     <div>
@@ -69,9 +98,10 @@ export function ProjectAreaPicker({
             onMouseDown={(e) => {
               e.stopPropagation();
             }}
-            className={`w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-2 ${currentListId === list.id
-              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium'
-              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            className={`w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-2 ${list.level > 0 ? 'ml-4' : ''
+              } ${currentListId === list.id
+                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
           >
             <span>{list.icon}</span>
