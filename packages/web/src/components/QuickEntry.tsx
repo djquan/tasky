@@ -7,7 +7,7 @@ import { useProjects, useAreas } from '../hooks/useEntities';
 import type { WhenValue } from '@tasky/shared';
 
 export function QuickEntry() {
-  const { quickEntryOpen, toggleQuickEntry } = useNavigation();
+  const { quickEntryOpen, toggleQuickEntry, currentView, contextId } = useNavigation();
   const { projects } = useProjects();
   const { areas } = useAreas();
 
@@ -85,12 +85,40 @@ export function QuickEntry() {
     }
   }, [activeSection]);
 
-  // Focus input when opened
+  // Prefill fields based on current view when opened
   useEffect(() => {
-    if (quickEntryOpen && inputRef.current) {
-      inputRef.current.focus();
+    if (quickEntryOpen) {
+      // Prefill date if on Today view
+      if (currentView === 'today') {
+        setWhen('today');
+        setScheduledDate(null);
+      } else {
+        // Reset to defaults if not on Today view
+        setWhen('anytime');
+        setScheduledDate(null);
+      }
+
+      // Prefill list if on Project or Area view
+      if (currentView === 'project' || currentView === 'area') {
+        setListId(contextId);
+      } else {
+        setListId(null);
+      }
+
+      // Focus input
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    } else {
+      // Reset fields when modal closes
+      setInput('');
+      setNotes('');
+      setWhen('anytime');
+      setScheduledDate(null);
+      setListId(null);
+      setActiveSection(null);
     }
-  }, [quickEntryOpen]);
+  }, [quickEntryOpen, currentView, contextId]);
 
   // Keyboard shortcuts
   useEffect(() => {
