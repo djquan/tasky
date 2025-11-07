@@ -436,11 +436,6 @@ export function Sidebar() {
               <span>🗑️</span>
               <span>Trash</span>
             </span>
-            {counts.trash > 0 && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-light-hover dark:bg-dark-hover text-gray-600 dark:text-gray-400">
-                {counts.trash}
-              </span>
-            )}
           </button>
         </div>
       </nav>

@@ -10,6 +10,7 @@ interface NavigationState {
   taskDetailOpen: boolean;
   whenPopupOpen: boolean;
   listPopupOpen: boolean;
+  searchPopupOpen: boolean;
   quickEntryOpen: boolean;
 }
 
@@ -26,6 +27,8 @@ interface NavigationActions {
   closeWhenPopup: () => void;
   openListPopup: () => void;
   closeListPopup: () => void;
+  openSearchPopup: () => void;
+  closeSearchPopup: () => void;
   toggleQuickEntry: () => void;
 }
 
@@ -42,6 +45,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const [taskDetailOpen, setTaskDetailOpen] = useState(false);
   const [whenPopupOpen, setWhenPopupOpen] = useState(false);
   const [listPopupOpen, setListPopupOpen] = useState(false);
+  const [searchPopupOpen, setSearchPopupOpen] = useState(false);
   const [quickEntryOpen, setQuickEntryOpen] = useState(false);
 
   const setView = (view: ViewType, id: string | null = null) => {
@@ -154,6 +158,14 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     setListPopupOpen(false);
   };
 
+  const openSearchPopup = () => {
+    setSearchPopupOpen(true);
+  };
+
+  const closeSearchPopup = () => {
+    setSearchPopupOpen(false);
+  };
+
   const toggleQuickEntry = () => setQuickEntryOpen(!quickEntryOpen);
 
   return (
@@ -167,6 +179,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
         taskDetailOpen,
         whenPopupOpen,
         listPopupOpen,
+        searchPopupOpen,
         quickEntryOpen,
         setView,
         toggleSidebar,
@@ -180,6 +193,8 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
         closeWhenPopup,
         openListPopup,
         closeListPopup,
+        openSearchPopup,
+        closeSearchPopup,
         toggleQuickEntry
       }}
     >

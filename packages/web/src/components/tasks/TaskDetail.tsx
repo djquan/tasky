@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTask, useProjects, useAreas } from '../../hooks/useEntities';
 import { useNavigation } from '../../store/navigation';
-import { updateTask, deleteTask, toggleTask } from '../../lib/tasks';
+import { updateTask, cancelTask, toggleTask } from '../../lib/tasks';
 import { WhenPicker } from '../pickers/WhenPicker';
 import { ProjectAreaPicker } from '../pickers/ProjectAreaPicker';
 import type { WhenValue } from '@tasky/shared';
@@ -160,7 +160,12 @@ export function TaskDetail() {
   };
 
   const handleDeleteTask = () => {
-    deleteTask(task.id);
+    cancelTask(task.id);
+    handleClose();
+  };
+
+  const handleRestoreTask = () => {
+    updateTask(task.id, { canceled: false, completedAt: null });
     handleClose();
   };
 
@@ -330,13 +335,23 @@ export function TaskDetail() {
 
           {/* Actions */}
           <div className="px-4 py-3 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={handleDeleteTask}
-              className="text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-            >
-              Delete
-            </button>
+            {task.canceled ? (
+              <button
+                type="button"
+                onClick={handleRestoreTask}
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                Restore
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleDeleteTask}
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+              >
+                Delete
+              </button>
+            )}
             <div className="flex gap-2">
               <button
                 type="button"
