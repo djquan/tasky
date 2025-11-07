@@ -28,7 +28,7 @@ describe('headings.ts', () => {
   describe('createHeading', () => {
     it('should create a heading with default values', () => {
       const heading = headings.createHeading({ listId: 'list-1' });
-      
+
       expect(heading).toBeDefined();
       expect(heading.id).toBeTruthy();
       expect(heading.title).toBe('');
@@ -48,7 +48,7 @@ describe('headings.ts', () => {
       };
 
       const heading = headings.createHeading(input);
-      
+
       expect(heading.title).toBe('Test Heading');
       expect(heading.listId).toBe('list-1');
       expect(heading.sortOrder).toBe(5000);
@@ -59,7 +59,7 @@ describe('headings.ts', () => {
     it('should return heading by ID', () => {
       const heading = headings.createHeading({ listId: 'list-1', title: 'Test' });
       const retrieved = headings.getHeading(heading.id);
-      
+
       expect(retrieved).toEqual(heading);
     });
 
@@ -74,9 +74,9 @@ describe('headings.ts', () => {
       const heading1 = headings.createHeading({ listId: 'list-1', title: 'Heading 1' });
       const heading2 = headings.createHeading({ listId: 'list-1', title: 'Heading 2' });
       const otherHeading = headings.createHeading({ listId: 'list-2', title: 'Other' });
-      
+
       const listHeadings = headings.getListHeadings('list-1');
-      
+
       expect(listHeadings).toHaveLength(2);
       expect(listHeadings.map(h => h.id)).toContain(heading1.id);
       expect(listHeadings.map(h => h.id)).toContain(heading2.id);
@@ -86,9 +86,9 @@ describe('headings.ts', () => {
     it('should exclude archived headings', () => {
       const active = headings.createHeading({ listId: 'list-1', title: 'Active' });
       headings.createHeading({ listId: 'list-1', title: 'Archived', archived: true });
-      
+
       const listHeadings = headings.getListHeadings('list-1');
-      
+
       expect(listHeadings).toHaveLength(1);
       expect(listHeadings[0].id).toBe(active.id);
     });
@@ -97,9 +97,9 @@ describe('headings.ts', () => {
       headings.createHeading({ listId: 'list-1', sortOrder: 300 });
       headings.createHeading({ listId: 'list-1', sortOrder: 100 });
       headings.createHeading({ listId: 'list-1', sortOrder: 200 });
-      
+
       const listHeadings = headings.getListHeadings('list-1');
-      
+
       expect(listHeadings[0].sortOrder).toBe(100);
       expect(listHeadings[1].sortOrder).toBe(200);
       expect(listHeadings[2].sortOrder).toBe(300);
@@ -111,16 +111,16 @@ describe('headings.ts', () => {
       const heading = headings.createHeading({ listId: 'list-1', title: 'Original' });
       await new Promise(resolve => setTimeout(resolve, 2)); // Small delay to ensure timestamp difference
       headings.updateHeading(heading.id, { title: 'Updated' });
-      
+
       const updated = headings.getHeading(heading.id);
       expect(updated?.title).toBe('Updated');
       expect(updated?.updatedAt).toBeGreaterThanOrEqual(heading.updatedAt);
     });
 
     it('should warn when heading not found', () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
       headings.updateHeading('non-existent', { title: 'Updated' });
-      
+
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Heading not found'));
       consoleSpy.mockRestore();
     });
@@ -130,7 +130,7 @@ describe('headings.ts', () => {
     it('should delete a heading', () => {
       const heading = headings.createHeading({ listId: 'list-1', title: 'To Delete' });
       headings.deleteHeading(heading.id);
-      
+
       const retrieved = headings.getHeading(heading.id);
       expect(retrieved).toBeUndefined();
     });
@@ -139,18 +139,18 @@ describe('headings.ts', () => {
   describe('archiveHeading', () => {
     it('should archive a heading', async () => {
       const heading = headings.createHeading({ listId: 'list-1', archived: false });
-      await new Promise(resolve => setTimeout(resolve, 1)); // Small delay to ensure timestamp difference
+      await new Promise(resolve => setTimeout(resolve, 10)); // Delay to ensure timestamp difference
       headings.archiveHeading(heading.id);
-      
+
       const updated = headings.getHeading(heading.id);
       expect(updated?.archived).toBe(true);
       expect(updated?.updatedAt).toBeGreaterThan(heading.updatedAt);
     });
 
     it('should warn when heading not found', () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
       headings.archiveHeading('non-existent');
-      
+
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Heading not found'));
       consoleSpy.mockRestore();
     });
@@ -209,7 +209,7 @@ describe('headings.ts', () => {
       const heading = headings.createHeading({ listId: 'list-1', title: 'Original' });
       headings.updateHeading(heading.id, { title: 'Updated' });
       undoManager.undo();
-      
+
       expect(headings.getHeading(heading.id)?.title).toBe('Original');
     });
 
@@ -217,7 +217,7 @@ describe('headings.ts', () => {
       const heading = headings.createHeading({ listId: 'list-1', title: 'Test' });
       headings.deleteHeading(heading.id);
       undoManager.undo();
-      
+
       expect(headings.getHeading(heading.id)).toBeDefined();
     });
 
@@ -225,7 +225,7 @@ describe('headings.ts', () => {
       const heading = headings.createHeading({ listId: 'list-1', archived: false });
       headings.archiveHeading(heading.id);
       undoManager.undo();
-      
+
       expect(headings.getHeading(heading.id)?.archived).toBe(false);
     });
   });

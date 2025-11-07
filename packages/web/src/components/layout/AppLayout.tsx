@@ -5,6 +5,7 @@ import { QuickEntry } from '../QuickEntry';
 import { WhenPopup } from '../pickers/WhenPopup';
 import { ListPopup } from '../pickers/ListPopup';
 import { SearchPopup } from '../pickers/SearchPopup';
+import { SettingsPopup } from '../SettingsPopup';
 import { useNavigation } from '../../store/navigation';
 import { cancelTask } from '../../lib/tasks';
 import { tasksMap } from '../../lib/yjs';
@@ -336,6 +337,9 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       {/* Quick Entry (Cmd+N) */}
       <QuickEntry />
+
+      {/* Settings Popup */}
+      <SettingsPopup />
     </div>
   );
 }

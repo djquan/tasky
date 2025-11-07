@@ -40,6 +40,11 @@ pnpm type-check
   - Main app with PWA capabilities
   - All commands run through root workspace filters
 
+- **packages/server** - Y-Sweet sync server (optional)
+  - Token generation endpoint for Y-Sweet client access
+  - Docker setup for local development
+  - See `packages/server/README.md` for setup instructions
+
 ### Data Layer - Yjs Integration
 
 **Critical Architecture Pattern:**
@@ -47,14 +52,24 @@ pnpm type-check
 All state managed through single Yjs document (`packages/web/src/lib/yjs.ts`):
 
 - `ydoc` - Shared Y.Doc instance (singleton)
-- `provider` - IndexeddbPersistence for local storage
-- `todosArray` - Y.Array<Todo> containing all todos
+- `provider` - IndexeddbPersistence for local storage (always enabled)
+- `syncProvider` - Y-Sweet sync provider (optional, enabled via environment variables)
+- Both providers sync to the same `ydoc` instance
 
-**CRUD Operations** (`packages/web/src/lib/todos.ts`):
+**Provider Stack:**
 
-- Mutate todos via Y.Array methods: `.push()`, `.delete()`, `.insert()`
-- NEVER directly mutate todo objects - always delete + insert to update
+```
+ydoc (single Y.Doc)
+├── IndexeddbPersistence (local storage - always enabled)
+└── YSweetProvider (remote sync - optional)
+```
+
+**CRUD Operations** (`packages/web/src/lib/tasks.ts`, `packages/web/src/lib/lists.ts`, etc.):
+
+- Mutate entities via Y.Map methods: `.set()`, `.delete()`
+- NEVER directly mutate entity objects - always delete + set to update
 - IndexedDB auto-syncs on every change
+- Y-Sweet syncs changes to remote server when enabled
 
 **React Integration** (`packages/web/src/hooks/useTodos.ts`):
 
@@ -65,9 +80,10 @@ All state managed through single Yjs document (`packages/web/src/lib/yjs.ts`):
 ### Local-First Design Principles
 
 1. **No server dependency** - Everything works offline immediately
-2. **CRDT-based** - Yjs Y.Array enables future conflict-free sync
-3. **IndexedDB persistence** - Data survives browser restarts
+2. **CRDT-based** - Yjs Y.Map/Y.Array enables conflict-free sync
+3. **IndexedDB persistence** - Data survives browser restarts (always enabled)
 4. **Distributed IDs** - UUIDs generated client-side via `crypto.randomUUID()`
+5. **Optional remote sync** - Y-Sweet provider adds multi-device sync when enabled
 
 ### PWA Configuration
 
@@ -90,14 +106,46 @@ All state managed through single Yjs document (`packages/web/src/lib/yjs.ts`):
 2. Export from `packages/shared/src/index.ts`
 3. Import in web package: `import { Type } from '@tasky/shared'`
 
-### Future Sync Server
+### Multi-Device Sync (Y-Sweet)
 
-When implementing Phase 2 (multi-device sync):
+**Architecture:**
 
-- Create `packages/server` workspace
-- Add Yjs WebSocket/WebRTC provider alongside IndexedDB provider
-- No changes needed to CRUD operations (CRDT handles conflicts)
-- See PLAN.md for roadmap
+- **Single document**: All entities (tasks, lists, tags, etc.) stored in one Y.Doc
+- **Hybrid persistence**: IndexedDB (primary) + Y-Sweet (sync layer)
+- **No authentication**: Single-user setup, no auth required
+- **Self-hosted**: Y-Sweet server runs locally or on infrastructure
+
+**Setup:**
+
+1. **Start Y-Sweet server** (see `packages/server/README.md`):
+
+   ```bash
+   cd packages/server
+   docker-compose up -d
+   ```
+
+2. **Configure web app** (`packages/web/.env`):
+
+   ```env
+   VITE_SYNC_ENABLED=true
+   VITE_YSWEET_URL=ws://localhost:1234
+   VITE_YSWEET_TOKEN_URL=http://localhost:3001/token
+   ```
+
+3. **Sync initializes automatically** when `waitForSync()` is called
+
+**Connection Management:**
+
+- Automatic reconnection with exponential backoff
+- Offline fallback: IndexedDB continues working when server unavailable
+- Connection state tracking via `getSyncState()`
+- See `packages/web/src/lib/sync.ts` for implementation details
+
+**Document Structure:**
+
+- Single document ID: `tasky-main` (configurable via `VITE_DOCUMENT_ID`)
+- All Y.Maps and Y.Arrays sync automatically via CRDT
+- No changes needed to CRUD operations (conflicts handled automatically)
 
 ## TypeScript Configuration
 
