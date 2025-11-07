@@ -150,20 +150,23 @@ describe('tasks.ts', () => {
       expect(task.sortOrder).toBe(5000);
     });
 
-    it('should add task to sort order for list', () => {
+    it('should add task to sort order for list', async () => {
       const task = tasks.createTask({ listId: 'list-1', when: 'anytime' });
-      const sortOrder = mockListTaskSortOrders.get('list-1');
+      const yjs = await import('./yjs');
+      const sortOrder = yjs.listTaskSortOrders.get('list-1');
       expect(sortOrder).toContain(task.id);
     });
 
-    it('should add task to today sort order when when=today', () => {
+    it('should add task to today sort order when when=today', async () => {
       const task = tasks.createTask({ when: 'today' });
-      expect(mockTodaySortOrder).toContain(task.id);
+      const yjs = await import('./yjs');
+      expect(yjs.todaySortOrder.toArray()).toContain(task.id);
     });
 
-    it('should add task to anytime sort order when when=anytime', () => {
+    it('should add task to anytime sort order when when=anytime', async () => {
       const task = tasks.createTask({ when: 'anytime' });
-      expect(mockAnytimeSortOrder).toContain(task.id);
+      const yjs = await import('./yjs');
+      expect(yjs.anytimeSortOrder.toArray()).toContain(task.id);
     });
   });
 
@@ -192,24 +195,26 @@ describe('tasks.ts', () => {
       expect(updated?.updatedAt).toBeGreaterThan(task.updatedAt);
     });
 
-    it('should handle sort order changes when when changes', () => {
+    it('should handle sort order changes when when changes', async () => {
       const task = tasks.createTask({ when: 'anytime' });
-      expect(mockAnytimeSortOrder).toContain(task.id);
+      const yjs = await import('./yjs');
+      expect(yjs.anytimeSortOrder.toArray()).toContain(task.id);
       
       tasks.updateTask(task.id, { when: 'today' });
       
-      expect(mockAnytimeSortOrder).not.toContain(task.id);
-      expect(mockTodaySortOrder).toContain(task.id);
+      expect(yjs.anytimeSortOrder.toArray()).not.toContain(task.id);
+      expect(yjs.todaySortOrder.toArray()).toContain(task.id);
     });
 
-    it('should handle sort order changes when listId changes', () => {
+    it('should handle sort order changes when listId changes', async () => {
       const task = tasks.createTask({ when: 'anytime' });
-      expect(mockAnytimeSortOrder).toContain(task.id);
+      const yjs = await import('./yjs');
+      expect(yjs.anytimeSortOrder.toArray()).toContain(task.id);
       
       tasks.updateTask(task.id, { listId: 'list-1' });
       
-      expect(mockAnytimeSortOrder).not.toContain(task.id);
-      const listOrder = mockListTaskSortOrders.get('list-1');
+      expect(yjs.anytimeSortOrder.toArray()).not.toContain(task.id);
+      const listOrder = yjs.listTaskSortOrders.get('list-1');
       expect(listOrder).toContain(task.id);
     });
 
@@ -231,13 +236,14 @@ describe('tasks.ts', () => {
       expect(retrieved).toBeUndefined();
     });
 
-    it('should remove task from sort order', () => {
+    it('should remove task from sort order', async () => {
       const task = tasks.createTask({ when: 'today' });
-      expect(mockTodaySortOrder).toContain(task.id);
+      const yjs = await import('./yjs');
+      expect(yjs.todaySortOrder.toArray()).toContain(task.id);
       
       tasks.deleteTask(task.id);
       
-      expect(mockTodaySortOrder).not.toContain(task.id);
+      expect(yjs.todaySortOrder.toArray()).not.toContain(task.id);
     });
 
     it('should warn when task not found', () => {
@@ -323,32 +329,34 @@ describe('tasks.ts', () => {
   });
 
   describe('reorderTask', () => {
-    it('should reorder task within list', () => {
+    it('should reorder task within list', async () => {
       const task1 = tasks.createTask({ listId: 'list-1' });
       const task2 = tasks.createTask({ listId: 'list-1' });
       tasks.createTask({ listId: 'list-1' });
+      const yjs = await import('./yjs');
       
-      const initialOrder = mockListTaskSortOrders.get('list-1') || [];
+      const initialOrder = yjs.listTaskSortOrders.get('list-1') || [];
       expect(initialOrder.indexOf(task1.id)).toBeLessThan(initialOrder.indexOf(task2.id));
       
       // Move task2 to index 0
       tasks.reorderTask(task2.id, 0);
       
-      const newOrder = mockListTaskSortOrders.get('list-1') || [];
+      const newOrder = yjs.listTaskSortOrders.get('list-1') || [];
       expect(newOrder[0]).toBe(task2.id);
     });
 
-    it('should reorder task within when-based container', () => {
+    it('should reorder task within when-based container', async () => {
       tasks.createTask({ when: 'today' });
       const task2 = tasks.createTask({ when: 'today' });
+      const yjs = await import('./yjs');
       
-      const initialIndex = mockTodaySortOrder.indexOf(task2.id);
+      const initialIndex = yjs.todaySortOrder.toArray().indexOf(task2.id);
       expect(initialIndex).toBeGreaterThan(-1);
       
       // Move to beginning
       tasks.reorderTask(task2.id, 0);
       
-      expect(mockTodaySortOrder[0]).toBe(task2.id);
+      expect(yjs.todaySortOrder.toArray()[0]).toBe(task2.id);
     });
 
     it('should do nothing if task not found', () => {
