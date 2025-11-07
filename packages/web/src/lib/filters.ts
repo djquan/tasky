@@ -241,12 +241,12 @@ export function getUpcomingTasks(): Task[] {
 /**
  * Get tasks for Logbook view
  *
- * Criteria: completed=true (but not canceled)
+ * Criteria: completed=true OR canceled=true
  */
 export function getLogbookTasks(): Task[] {
   const tasks = getAllTasks();
   return tasks
-    .filter(task => task.completed && !task.canceled)
+    .filter(task => task.completed || task.canceled)
     .sort((a, b) => {
       const aCompleted = a.completedAt || a.updatedAt;
       const bCompleted = b.completedAt || b.updatedAt;
@@ -371,11 +371,7 @@ export function getSmartListCounts() {
   };
 
   for (const task of tasks) {
-    if (task.canceled) {
-      counts.trash++;
-      continue;
-    }
-    if (task.completed) {
+    if (task.completed || task.canceled) {
       counts.logbook++;
       continue;
     }
