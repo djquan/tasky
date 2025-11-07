@@ -1,12 +1,11 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+# AGENTS.md
 
 ## Project Overview
 
 Tasky is a local-first PWA todo app built with CRDTs (Yjs) for conflict-free data sync. Architecture designed for eventual multi-device sync without breaking changes.
 
 **Requirements:**
+
 - Node.js >= 18
 - pnpm >= 8
 
@@ -46,16 +45,19 @@ pnpm type-check
 **Critical Architecture Pattern:**
 
 All state managed through single Yjs document (`packages/web/src/lib/yjs.ts`):
+
 - `ydoc` - Shared Y.Doc instance (singleton)
 - `provider` - IndexeddbPersistence for local storage
 - `todosArray` - Y.Array<Todo> containing all todos
 
 **CRUD Operations** (`packages/web/src/lib/todos.ts`):
+
 - Mutate todos via Y.Array methods: `.push()`, `.delete()`, `.insert()`
 - NEVER directly mutate todo objects - always delete + insert to update
 - IndexedDB auto-syncs on every change
 
 **React Integration** (`packages/web/src/hooks/useTodos.ts`):
+
 - `useTodos()` subscribes to Y.Array via `.observe()`
 - Wait for `waitForSync()` before initial render
 - Unsubscribe via `.unobserve()` on cleanup
@@ -91,6 +93,7 @@ All state managed through single Yjs document (`packages/web/src/lib/yjs.ts`):
 ### Future Sync Server
 
 When implementing Phase 2 (multi-device sync):
+
 - Create `packages/server` workspace
 - Add Yjs WebSocket/WebRTC provider alongside IndexedDB provider
 - No changes needed to CRUD operations (CRDT handles conflicts)
