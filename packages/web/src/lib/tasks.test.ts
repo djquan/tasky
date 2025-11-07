@@ -45,10 +45,12 @@ vi.mock('./yjs', () => ({
     insert: (index: number, items: string[]) => {
       mockTodaySortOrder.splice(index, 0, ...items);
     },
+    indexOf: (id: string) => mockTodaySortOrder.indexOf(id),
     length: 0,
   },
   anytimeSortOrder: {
     push: (items: string[]) => {
+      // Yjs push takes an array and pushes its contents
       mockAnytimeSortOrder.push(...items);
     },
     toArray: () => [...mockAnytimeSortOrder],
@@ -58,6 +60,7 @@ vi.mock('./yjs', () => ({
     insert: (index: number, items: string[]) => {
       mockAnytimeSortOrder.splice(index, 0, ...items);
     },
+    indexOf: (id: string) => mockAnytimeSortOrder.indexOf(id),
     length: 0,
   },
   somedaySortOrder: {
@@ -71,6 +74,7 @@ vi.mock('./yjs', () => ({
     insert: (index: number, items: string[]) => {
       mockSomedaySortOrder.splice(index, 0, ...items);
     },
+    indexOf: (id: string) => mockSomedaySortOrder.indexOf(id),
     length: 0,
   },
   listTaskSortOrders: {
