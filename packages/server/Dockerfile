@@ -9,7 +9,9 @@ RUN npm install -g pnpm
 COPY package.json ./
 
 # Install dependencies
-RUN pnpm install --prod --frozen-lockfile
+# Note: Using --no-frozen-lockfile because lockfile is at repo root
+# This is safe since server has minimal dependencies (@y-sweet/sdk only)
+RUN pnpm install --prod --no-frozen-lockfile
 
 # Copy source code
 COPY src ./src

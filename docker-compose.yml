@@ -1,40 +1,63 @@
 services:
   y-sweet:
     image: ghcr.io/jamsocket/y-sweet:latest
+    ports:
+      - "8080:8080"
     environment:
+      - SESSION_BACKEND_KEY=${SESSION_BACKEND_KEY:-dev-key-change-in-production-use-openssl-rand-base64-32}
       - YSWEET_STORAGE_PATH=/data
-      - SESSION_BACKEND_KEY=${SESSION_BACKEND_KEY}
     volumes:
       - y-sweet-data:/data
+    # Override default command to use 'serve' instead of 'serve-doc' to expose HTTP management API
+    command: ["y-sweet", "serve", "--host", "0.0.0.0", "--port", "8080"]
     restart: unless-stopped
     networks:
       - tasky-network
-    # Coolify will handle port mapping automatically
 
   token-server:
     build:
       context: ./packages/server
       dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
     environment:
       - PORT=3001
-      - YSWEET_URL=http://y-sweet:8080
-      - YSWEET_CLIENT_URL=${YSWEET_CLIENT_URL}
+      # Connect to Y-Sweet service in Docker network
+      - YSWEET_URL=${YSWEET_URL:-http://y-sweet:8080}
+      # External URL for clients (browser connects to localhost)
+      - YSWEET_CLIENT_URL=${YSWEET_CLIENT_URL:-ws://localhost:8080}
       - DOCUMENT_ID=${DOCUMENT_ID:-tasky-main}
     depends_on:
-      - y-sweet
+      y-sweet:
+        condition: service_started
+      web:
+        condition: service_started
     restart: unless-stopped
     networks:
       - tasky-network
-    # Coolify will handle port mapping automatically
+    # Add a small delay to ensure Y-Sweet is fully ready
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://y-sweet:8080/doc/new', (r) => process.exit(r.statusCode === 405 ? 0 : 1))",
+        ]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
 
   web:
     build:
       context: .
       dockerfile: ./packages/web/Dockerfile
+    ports:
+      - "80:80"
     restart: unless-stopped
     networks:
       - tasky-network
-    # Coolify will handle port mapping automatically
 
 volumes:
   y-sweet-data:
@@ -42,4 +65,3 @@ volumes:
 networks:
   tasky-network:
     driver: bridge
-
