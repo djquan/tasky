@@ -9,7 +9,7 @@ RUN npm install -g pnpm
 COPY package.json ./
 
 # Install dependencies
-RUN pnpm install --prod
+RUN pnpm install --prod --frozen-lockfile
 
 # Copy source code
 COPY src ./src

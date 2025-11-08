@@ -1,0 +1,45 @@
+services:
+  y-sweet:
+    image: ghcr.io/jamsocket/y-sweet:latest
+    environment:
+      - YSWEET_STORAGE_PATH=/data
+      - SESSION_BACKEND_KEY=${SESSION_BACKEND_KEY}
+    volumes:
+      - y-sweet-data:/data
+    restart: unless-stopped
+    networks:
+      - tasky-network
+    # Coolify will handle port mapping automatically
+
+  token-server:
+    build:
+      context: ./packages/server
+      dockerfile: Dockerfile
+    environment:
+      - PORT=3001
+      - YSWEET_URL=http://y-sweet:8080
+      - YSWEET_CLIENT_URL=${YSWEET_CLIENT_URL}
+      - DOCUMENT_ID=${DOCUMENT_ID:-tasky-main}
+    depends_on:
+      - y-sweet
+    restart: unless-stopped
+    networks:
+      - tasky-network
+    # Coolify will handle port mapping automatically
+
+  web:
+    build:
+      context: .
+      dockerfile: ./packages/web/Dockerfile
+    restart: unless-stopped
+    networks:
+      - tasky-network
+    # Coolify will handle port mapping automatically
+
+volumes:
+  y-sweet-data:
+
+networks:
+  tasky-network:
+    driver: bridge
+
