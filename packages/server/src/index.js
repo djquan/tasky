@@ -11,13 +11,11 @@ import { DocumentManager } from '@y-sweet/sdk';
 const PORT = process.env.PORT || 3001;
 const YSWEET_URL = process.env.YSWEET_URL || 'http://localhost:8080';
 // Client URL is what we return to clients (may be different from internal URL in Docker)
-const YSWEET_CLIENT_URL = process.env.YSWEET_CLIENT_URL || 'ws://localhost:1234';
+const YSWEET_CLIENT_URL = process.env.YSWEET_CLIENT_URL || 'ws://localhost:8080';
 const DOCUMENT_ID = process.env.DOCUMENT_ID || 'tasky-main';
 
-// Initialize DocumentManager with connection string format
-// Y-Sweet expects: ys://auth-token@host:port
-// For local development without auth, we can try just the URL
-// The SDK will handle auth via the SESSION_BACKEND_KEY
+// Initialize DocumentManager with HTTP URL
+// The SDK accepts http:// URLs and handles the connection internally
 const manager = new DocumentManager(YSWEET_URL);
 
 console.log('[Token Server] Initializing with Y-Sweet URL:', YSWEET_URL);
@@ -40,10 +38,18 @@ const server = http.createServer(async (req, res) => {
       const clientToken = await manager.getOrCreateDocAndToken(DOCUMENT_ID);
 
       // clientToken is an object with: { url, baseUrl, docId, authorization }
-      // We return the WebSocket URL and docId for the client to connect
+      // The url from Y-Sweet uses internal Docker hostname, so we need to replace it
+      // with the client-accessible URL
+      const internalUrl = clientToken.url; // e.g., ws://y-sweet:8080/d/tasky-main/ws
+      // Ensure client URL is WebSocket format (convert http:// to ws:// if needed)
+      const wsClientUrl = YSWEET_CLIENT_URL.startsWith('http://')
+        ? YSWEET_CLIENT_URL.replace(/^http/, 'ws')
+        : YSWEET_CLIENT_URL;
+      const clientTokenUrl = internalUrl.replace(/^ws:\/\/[^/]+/, wsClientUrl);
+
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
-        token: clientToken.url, // Y-Sweet's full WebSocket URL with auth
+        token: clientTokenUrl, // WebSocket URL accessible from client
         url: YSWEET_CLIENT_URL, // Base WebSocket URL (for reference)
         docId: clientToken.docId
       }));
