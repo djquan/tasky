@@ -1,5 +1,5 @@
 # Multi-stage build for Tasky web app
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
@@ -53,16 +53,16 @@ RUN echo 'server { \
     \
     # Cache static assets \
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ { \
-        expires 1y; \
-        add_header Cache-Control "public, immutable"; \
+    expires 1y; \
+    add_header Cache-Control "public, immutable"; \
     } \
     \
     # SPA routing - serve index.html for all routes \
     location / { \
-        try_files $uri $uri/ /index.html; \
-        add_header Cache-Control "no-cache"; \
+    try_files $uri $uri/ /index.html; \
+    add_header Cache-Control "no-cache"; \
     } \
-}' > /etc/nginx/conf.d/default.conf
+    }' > /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 

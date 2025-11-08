@@ -65,7 +65,7 @@ export function ListView({ title, icon, children, onTitleChange, autoEdit = fals
           {/* Mobile Hamburger Menu Button */}
           <button
             onClick={toggleSidebar}
-            className="md:hidden text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors p-1 -ml-1"
+            className="sm:hidden text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors p-1 -ml-1"
             aria-label="Toggle sidebar"
             title="Toggle sidebar"
           >

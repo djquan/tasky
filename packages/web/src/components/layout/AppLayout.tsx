@@ -178,30 +178,30 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* Mobile Backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity"
+          className="fixed inset-0 bg-black/50 z-40 sm:hidden transition-opacity"
           onClick={toggleSidebar}
         />
       )}
 
       {/* Desktop Sidebar - Always Visible */}
-      <div className="hidden md:block fixed left-0 top-0 bottom-0 z-30">
+      <div className="hidden sm:block fixed left-0 top-0 bottom-0 z-30">
         <Sidebar />
       </div>
 
       {/* Mobile Sidebar Overlay */}
-      <div className={`md:hidden fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out h-full ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`sm:hidden fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out h-full ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <Sidebar />
       </div>
 
       {/* Main Content */}
       <main
-        className="flex-1 overflow-y-auto pb-4 md:pb-16 bg-light-surface dark:bg-dark-surface relative md:ml-56"
+        className="flex-1 overflow-y-auto pb-4 sm:pb-16 bg-light-surface dark:bg-dark-surface relative sm:ml-56"
         onClick={handleMainClick}
       >
         {children}
 
         {/* Bottom Bar (Desktop) */}
-        <div className="hidden md:flex fixed bottom-0 bg-light-bg dark:bg-dark-bg border-t border-light-border dark:border-dark-border px-6 py-3 items-center justify-between gap-6 left-56 right-0">
+        <div className="hidden sm:flex fixed bottom-0 bg-light-bg dark:bg-dark-bg border-t border-light-border dark:border-dark-border px-6 py-3 items-center justify-between gap-6 left-56 right-0">
           <div className="flex items-center gap-6">
             <button
               onClick={toggleQuickEntry}
@@ -323,7 +323,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* Mobile Floating Action Button */}
       <button
         onClick={toggleQuickEntry}
-        className="md:hidden fixed bottom-4 right-4 z-30 w-14 h-14 bg-blue-600 dark:bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center justify-center"
+        className="sm:hidden fixed bottom-4 right-4 z-30 w-14 h-14 bg-blue-600 dark:bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center justify-center"
         aria-label="Add new task"
         title="Add new task"
       >
