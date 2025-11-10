@@ -2,14 +2,14 @@ services:
   y-sweet:
     image: ghcr.io/jamsocket/y-sweet:latest
     ports:
-      - "8080:8080"
+      - "8091:8091"
     environment:
       - SESSION_BACKEND_KEY=${SESSION_BACKEND_KEY:-dev-key-change-in-production-use-openssl-rand-base64-32}
       - YSWEET_STORAGE_PATH=/data
     volumes:
       - y-sweet-data:/data
     # Override default command to use 'serve' instead of 'serve-doc' to expose HTTP management API
-    command: ["y-sweet", "serve", "--host", "0.0.0.0", "--port", "8080"]
+    command: ["y-sweet", "serve", "--host", "0.0.0.0", "--port", "8091"]
     restart: unless-stopped
     networks:
       - tasky-network
@@ -23,9 +23,9 @@ services:
     environment:
       - PORT=3001
       # Connect to Y-Sweet service in Docker network
-      - YSWEET_URL=${YSWEET_URL:-http://y-sweet:8080}
+      - YSWEET_URL=${YSWEET_URL:-http://y-sweet:8091}
       # External URL for clients (browser connects to localhost)
-      - YSWEET_CLIENT_URL=${YSWEET_CLIENT_URL:-ws://localhost:8080}
+      - YSWEET_CLIENT_URL=${YSWEET_CLIENT_URL:-ws://localhost:8091}
       - DOCUMENT_ID=${DOCUMENT_ID:-tasky-main}
     depends_on:
       y-sweet:
@@ -42,7 +42,7 @@ services:
           "CMD",
           "node",
           "-e",
-          "require('http').get('http://y-sweet:8080/doc/new', (r) => process.exit(r.statusCode === 405 ? 0 : 1))",
+          "require('http').get('http://y-sweet:8091/doc/new', (r) => process.exit(r.statusCode === 405 ? 0 : 1))",
         ]
       interval: 2s
       timeout: 5s
@@ -54,7 +54,7 @@ services:
       context: .
       dockerfile: ./packages/web/Dockerfile
     ports:
-      - "80:80"
+      - "8090:80"
     restart: unless-stopped
     networks:
       - tasky-network
