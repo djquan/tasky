@@ -15,7 +15,7 @@ Tasky is a local-first PWA todo app built with CRDTs (Yjs) for conflict-free dat
 # Install all workspace dependencies
 pnpm install
 
-# Dev server (http://localhost:5173)
+# Dev server (http://localhost:8090)
 pnpm dev
 
 # Production build
@@ -129,7 +129,7 @@ ydoc (single Y.Doc)
    ```env
    VITE_SYNC_ENABLED=true
    VITE_YSWEET_URL=ws://localhost:1234
-   VITE_YSWEET_TOKEN_URL=http://localhost:3001/token
+   VITE_YSWEET_TOKEN_URL=http://localhost:8092/token
    ```
 
 3. **Sync initializes automatically** when `waitForSync()` is called

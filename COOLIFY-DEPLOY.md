@@ -32,7 +32,7 @@ tailscale ip
 **Set Environment Variables:**
 ```
 SESSION_BACKEND_KEY=<your-generated-key>
-YSWEET_CLIENT_URL=ws://<your-tailscale-ip>:8080
+YSWEET_CLIENT_URL=ws://<your-tailscale-ip>:8091
 DOCUMENT_ID=tasky-main
 ```
 
@@ -42,19 +42,19 @@ DOCUMENT_ID=tasky-main
 
 After deployment, access via Tailscale IP:
 - Web: `http://<tailscale-ip>:<port>`
-- Token: `http://<tailscale-ip>:3001/token`
+- Token: `http://<tailscale-ip>:8092/token`
 
 ### 5. Configure App
 
 1. Open web app
 2. Settings → Enable sync
-3. Enter: `http://<tailscale-ip>:3001/token`
+3. Enter: `http://<tailscale-ip>:8092/token`
 4. Save
 
 ## What Gets Deployed
 
-- **y-sweet**: Official Docker image (port 8080)
-- **token-server**: Built from `packages/server/Dockerfile` (port 3001)
+- **y-sweet**: Official Docker image (port 8091)
+- **token-server**: Built from `packages/server/Dockerfile` (port 8092)
 - **web**: Built from `packages/web/Dockerfile` (port 80)
 
 All services communicate via Docker network `tasky-network`.

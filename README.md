@@ -71,7 +71,7 @@ Tasky supports optional multi-device synchronization via Y-Sweet:
    ```env
    VITE_SYNC_ENABLED=true
    VITE_YSWEET_URL=ws://localhost:1234
-   VITE_YSWEET_TOKEN_URL=http://localhost:3001/token
+   VITE_YSWEET_TOKEN_URL=http://localhost:8092/token
    ```
 
 3. **Restart dev server** - sync initializes automatically

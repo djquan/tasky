@@ -16,7 +16,7 @@ RUN pnpm install --prod --no-frozen-lockfile
 # Copy source code
 COPY src ./src
 
-EXPOSE 3001
+EXPOSE 8092
 
 CMD ["node", "src/index.js"]
 

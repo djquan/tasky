@@ -21,7 +21,7 @@ export interface SyncProvider {
 }
 
 interface TokenResponse {
-  token: string; // Y-Sweet's full WebSocket URL with auth (e.g. ws://localhost:8080/d/doc-id/ws)
+  token: string; // Y-Sweet's full WebSocket URL with auth (e.g. ws://localhost:8091/d/doc-id/ws)
   url: string; // Base URL (optional, for reference)
   docId: string;
 }
@@ -93,7 +93,7 @@ class YSweetSyncProvider implements SyncProvider {
       const { token, docId } = await this.fetchConnectionInfo();
 
       // Y-Sweet returns a complete WebSocket URL with auth already included
-      // Format: ws://localhost:8080/d/doc-id/ws
+      // Format: ws://localhost:8091/d/doc-id/ws
       // We use this URL directly (don't append token as query param)
 
       // Create WebSocket provider with Y-Sweet's authenticated URL

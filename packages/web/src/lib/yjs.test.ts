@@ -42,14 +42,14 @@ describe('yjs.ts sync integration', () => {
       // Mock settings in localStorage
       localStorage.setItem('tasky-settings', JSON.stringify({
         enabled: true,
-        tokenUrl: 'http://localhost:3001/token'
+        tokenUrl: 'http://localhost:8092/token'
       }));
 
       await yjs.initializeSync();
 
       expect(sync.createYSweetProvider).toHaveBeenCalledWith(
         yjs.ydoc,
-        'http://localhost:3001/token'
+        'http://localhost:8092/token'
       );
       expect(mockProvider.connect).toHaveBeenCalled();
 
@@ -70,7 +70,7 @@ describe('yjs.ts sync integration', () => {
 
       localStorage.setItem('tasky-settings', JSON.stringify({
         enabled: true,
-        tokenUrl: 'http://localhost:3001/token'
+        tokenUrl: 'http://localhost:8092/token'
       }));
 
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
@@ -105,7 +105,7 @@ describe('yjs.ts sync integration', () => {
 
       localStorage.setItem('tasky-settings', JSON.stringify({
         enabled: true,
-        tokenUrl: 'http://localhost:3001/token'
+        tokenUrl: 'http://localhost:8092/token'
       }));
 
       // Initialize sync to set syncProvider

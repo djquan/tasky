@@ -8,10 +8,10 @@
 import http from 'http';
 import { DocumentManager } from '@y-sweet/sdk';
 
-const PORT = process.env.PORT || 3001;
-const YSWEET_URL = process.env.YSWEET_URL || 'http://localhost:8080';
+const PORT = process.env.PORT || 8092;
+const YSWEET_URL = process.env.YSWEET_URL || 'http://localhost:8091';
 // Client URL is what we return to clients (may be different from internal URL in Docker)
-const YSWEET_CLIENT_URL = process.env.YSWEET_CLIENT_URL || 'ws://localhost:8080';
+const YSWEET_CLIENT_URL = process.env.YSWEET_CLIENT_URL || 'ws://localhost:8091';
 const DOCUMENT_ID = process.env.DOCUMENT_ID || 'tasky-main';
 
 // Initialize DocumentManager with HTTP URL
@@ -40,7 +40,7 @@ const server = http.createServer(async (req, res) => {
       // clientToken is an object with: { url, baseUrl, docId, authorization }
       // The url from Y-Sweet uses internal Docker hostname, so we need to replace it
       // with the client-accessible URL
-      const internalUrl = clientToken.url; // e.g., ws://y-sweet:8080/d/tasky-main/ws
+      const internalUrl = clientToken.url; // e.g., ws://y-sweet:8091/d/tasky-main/ws
       // Ensure client URL is WebSocket format (convert http:// to ws:// if needed)
       const wsClientUrl = YSWEET_CLIENT_URL.startsWith('http://')
         ? YSWEET_CLIENT_URL.replace(/^http/, 'ws')

@@ -19,9 +19,9 @@ services:
       context: ./packages/server
       dockerfile: Dockerfile
     ports:
-      - "3001:3001"
+      - "8092:8092"
     environment:
-      - PORT=3001
+      - PORT=8092
       # Connect to Y-Sweet service in Docker network
       - YSWEET_URL=${YSWEET_URL:-http://y-sweet:8091}
       # External URL for clients (browser connects to localhost)

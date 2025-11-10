@@ -12,7 +12,7 @@ Set these in Coolify's environment variables section:
 
 ```
 SESSION_BACKEND_KEY=<generate-with-openssl-rand-base64-32>
-YSWEET_CLIENT_URL=ws://your-tailscale-ip:8080
+YSWEET_CLIENT_URL=ws://your-tailscale-ip:8091
 DOCUMENT_ID=tasky-main
 ```
 
@@ -31,7 +31,7 @@ tailscale ip
 
 Then set:
 ```
-YSWEET_CLIENT_URL=ws://100.x.x.x:8080
+YSWEET_CLIENT_URL=ws://100.x.x.x:8091
 ```
 
 ## Deployment Steps
@@ -66,15 +66,15 @@ Click "Deploy" and watch the build logs. Coolify will:
 After deployment, Coolify will show you the ports. Access via your Tailscale IP:
 
 - **Web App**: `http://your-tailscale-ip:port` (usually port 80 or Coolify-assigned)
-- **Token Server**: `http://your-tailscale-ip:3001/token`
-- **Y-Sweet**: `ws://your-tailscale-ip:8080`
+- **Token Server**: `http://your-tailscale-ip:8092/token`
+- **Y-Sweet**: `ws://your-tailscale-ip:8091`
 
 ## Configure Tasky App
 
 1. Open the web app in your browser
 2. Click the settings icon (sliders) in the sidebar
 3. Toggle "Enable sync" ON
-4. Enter token server URL: `http://your-tailscale-ip:3001/token`
+4. Enter token server URL: `http://your-tailscale-ip:8092/token`
 5. Click Save
 6. Connection status should show "Connected"
 
