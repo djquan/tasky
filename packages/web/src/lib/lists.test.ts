@@ -188,7 +188,7 @@ describe('lists.ts', () => {
   describe('completeList', () => {
     it('should complete a list', async () => {
       const list = lists.createList({ completed: false });
-      await new Promise(resolve => setTimeout(resolve, 1)); // Small delay to ensure timestamp difference
+      await new Promise(resolve => setTimeout(resolve, 2)); // Small delay to ensure timestamp difference
       lists.completeList(list.id);
 
       const updated = lists.getList(list.id);
