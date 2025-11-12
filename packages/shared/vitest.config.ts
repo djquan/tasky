@@ -1,9 +1,13 @@
 import { defineConfig } from 'vitest/config';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    setupFiles: ['./src/test-setup.ts'],
+    setupFiles: [path.resolve(__dirname, './src/test-setup.ts')],
   },
 });
