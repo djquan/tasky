@@ -38,6 +38,10 @@ FROM nginx:alpine
 # Copy built files from builder
 COPY --from=builder /app/packages/web/dist /usr/share/nginx/html
 
+# Fix file permissions so nginx can read all files
+RUN chmod -R 644 /usr/share/nginx/html/* && \
+    find /usr/share/nginx/html -type d -exec chmod 755 {} \;
+
 # Configure MIME types for SVG and other assets
 RUN echo 'types { \
     text/html html htm shtml; \
