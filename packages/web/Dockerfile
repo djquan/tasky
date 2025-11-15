@@ -38,6 +38,23 @@ FROM nginx:alpine
 # Copy built files from builder
 COPY --from=builder /app/packages/web/dist /usr/share/nginx/html
 
+# Configure MIME types for SVG and other assets
+RUN echo 'types { \
+    text/html html htm shtml; \
+    text/css css; \
+    text/xml xml; \
+    image/gif gif; \
+    image/jpeg jpeg jpg; \
+    image/png png; \
+    image/svg+xml svg svgz; \
+    application/javascript js; \
+    application/json json; \
+    application/woff woff; \
+    application/woff2 woff2; \
+    font/ttf ttf; \
+    font/eot eot; \
+    }' > /etc/nginx/mime.types
+
 # Create nginx config for SPA routing
 RUN echo 'server { \
     listen 80; \
@@ -49,7 +66,7 @@ RUN echo 'server { \
     gzip on; \
     gzip_vary on; \
     gzip_min_length 1024; \
-    gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json; \
+    gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json image/svg+xml; \
     \
     # Cache static assets \
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ { \
