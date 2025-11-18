@@ -35,6 +35,15 @@ importers:
       vitest:
         specifier: ^4.0.8
         version: 4.0.8(@types/node@24.10.0)(@vitest/ui@4.0.8)(happy-dom@20.0.10)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)
+      ws:
+        specifier: ^8.18.3
+        version: 8.18.3
+      y-websocket:
+        specifier: ^2.1.0
+        version: 2.1.0(yjs@13.6.27)
+      yjs:
+        specifier: ^13.6.27
+        version: 13.6.27
 
   packages/server:
     dependencies:
@@ -3087,6 +3096,18 @@ packages:
     peerDependencies:
       bufferutil: ^4.0.1
       utf-8-validate: ^5.0.2
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
+  ws@8.18.3:
+    resolution: {integrity: sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
     peerDependenciesMeta:
       bufferutil:
         optional: true
@@ -6479,6 +6500,8 @@ snapshots:
     dependencies:
       async-limiter: 1.0.1
     optional: true
+
+  ws@8.18.3: {}
 
   xtend@4.0.2:
     optional: true

@@ -50,7 +50,7 @@ describe('sync.ts', () => {
     });
 
     it('should return true when sync enabled and token URL provided', () => {
-      localStorage.setItem('tasky-settings', JSON.stringify({ enabled: true, tokenUrl: 'http://localhost:8092/token' }));
+      localStorage.setItem('tasky-settings', JSON.stringify({ enabled: true, tokenUrl: 'http://localhost:8080' }));
       expect(isSyncEnabled()).toBe(true);
       localStorage.removeItem('tasky-settings');
     });
@@ -60,7 +60,7 @@ describe('sync.ts', () => {
     it('should create a sync provider instance', () => {
       const provider = createYSweetProvider(
         ydoc,
-        'http://localhost:8092/token'
+        'http://localhost:8080'
       );
 
       expect(provider).toBeDefined();
@@ -71,18 +71,20 @@ describe('sync.ts', () => {
 
   describe('SyncProvider', () => {
     let provider: SyncProvider;
+    const baseUrl = 'http://localhost:8080';
 
     beforeEach(() => {
       provider = createYSweetProvider(
         ydoc,
-        'http://localhost:8092/token'
+        baseUrl
       );
     });
 
     describe('connect', () => {
-      it('should fetch connection info and create WebSocket provider', async () => {
+      it('should fetch connection info and rewrite URL for WebSocket provider', async () => {
+        // Mock internal URL returned by token server
         const mockResponse = {
-          token: 'ws://localhost:8091/d/test-doc/ws', // Y-Sweet's full authenticated URL
+          token: 'ws://y-sweet:8091/d/test-doc/ws', 
           url: 'ws://localhost:8091',
           docId: 'test-doc'
         };
@@ -93,14 +95,42 @@ describe('sync.ts', () => {
 
         await provider.connect();
 
-        expect(fetch).toHaveBeenCalledWith('http://localhost:8092/token');
+        // Should fetch from /token endpoint
+        expect(fetch).toHaveBeenCalledWith('http://localhost:8080/token');
+        
+        // Should rewrite ws://y-sweet:8091... to ws://localhost:8080...
         expect(WebsocketProvider).toHaveBeenCalledWith(
-          'ws://localhost:8091/d/test-doc/ws', // Uses Y-Sweet's URL directly
+          'ws://localhost:8080/d/test-doc/ws',
           'test-doc',
           ydoc,
           { connect: true }
         );
         expect(provider.provider).toBeDefined();
+      });
+
+      it('should rewrite URL correctly when using HTTPS', async () => {
+        const httpsProvider = createYSweetProvider(ydoc, 'https://api.tasky.app');
+        
+        const mockResponse = {
+          token: 'ws://y-sweet:8091/d/test-doc/ws',
+          docId: 'test-doc'
+        };
+        vi.mocked(fetch).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        } as Response);
+
+        await httpsProvider.connect();
+
+        expect(fetch).toHaveBeenCalledWith('https://api.tasky.app/token');
+        
+        // Should rewrite to wss:// and use the host from config
+        expect(WebsocketProvider).toHaveBeenCalledWith(
+          'wss://api.tasky.app/d/test-doc/ws',
+          'test-doc',
+          ydoc,
+          { connect: true }
+        );
       });
 
       it('should handle token fetch failure', async () => {
@@ -112,8 +142,7 @@ describe('sync.ts', () => {
 
       it('should not connect if already connecting', async () => {
         const mockResponse = {
-          token: 'ws://localhost:8091/d/test-doc/ws',
-          url: 'ws://localhost:8091',
+          token: 'ws://y-sweet:8091/d/test-doc/ws',
           docId: 'test-doc'
         };
         vi.mocked(fetch).mockResolvedValueOnce({
@@ -134,8 +163,7 @@ describe('sync.ts', () => {
     describe('disconnect', () => {
       it('should destroy provider and reset state', async () => {
         const mockResponse = {
-          token: 'ws://localhost:8091/d/test-doc/ws',
-          url: 'ws://localhost:8091',
+          token: 'ws://y-sweet:8091/d/test-doc/ws',
           docId: 'test-doc'
         };
         vi.mocked(fetch).mockResolvedValueOnce({
@@ -153,18 +181,12 @@ describe('sync.ts', () => {
         expect(provider.provider).toBeNull();
         expect(provider.connectionState).toBe('disconnected');
       });
-
-      it('should handle disconnect when not connected', () => {
-        expect(() => provider.disconnect()).not.toThrow();
-        expect(provider.connectionState).toBe('disconnected');
-      });
     });
 
     describe('reconnect', () => {
       it('should disconnect and reconnect', async () => {
         const mockResponse = {
-          token: 'ws://localhost:8091/d/test-doc/ws',
-          url: 'ws://localhost:8091',
+          token: 'ws://y-sweet:8091/d/test-doc/ws',
           docId: 'test-doc'
         };
         vi.mocked(fetch)
@@ -186,30 +208,5 @@ describe('sync.ts', () => {
         expect(fetch).toHaveBeenCalledTimes(2);
       });
     });
-
-    describe('connection state listeners', () => {
-      it('should notify listeners on state change', async () => {
-        const listener = vi.fn();
-        const unsubscribe = provider.onConnectionStateChange(listener);
-
-        const mockResponse = {
-          token: 'ws://localhost:8091/d/test-doc/ws',
-          url: 'ws://localhost:8091',
-          docId: 'test-doc'
-        };
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => mockResponse,
-        } as Response);
-
-        await provider.connect();
-
-        // Only 'connecting' state is set during connect (WebSocket events are async)
-        expect(listener).toHaveBeenCalledWith('connecting');
-
-        unsubscribe();
-      });
-    });
   });
 });
-

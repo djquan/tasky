@@ -34,6 +34,9 @@
     "eslint": "^9.39.1",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
-    "vitest": "^4.0.8"
+    "vitest": "^4.0.8",
+    "ws": "^8.18.3",
+    "y-websocket": "^2.1.0",
+    "yjs": "^13.6.27"
   }
 }

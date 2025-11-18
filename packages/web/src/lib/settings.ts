@@ -7,7 +7,7 @@
 
 export interface SyncSettings {
   enabled: boolean;
-  tokenUrl: string;
+  tokenUrl: string; // Now represents the base Sync URL (e.g. http://localhost:8080)
   // Legacy fields for backward compatibility (no longer shown in UI)
   ySweetUrl?: string;
   documentId?: string;
@@ -17,7 +17,8 @@ const SETTINGS_KEY = 'tasky-settings';
 
 const DEFAULT_SETTINGS: SyncSettings = {
   enabled: false,
-  tokenUrl: 'http://localhost:8092/token',
+  // Use environment variable if available, otherwise default to local nginx proxy
+  tokenUrl: import.meta.env.VITE_SYNC_URL || 'http://localhost:8080',
 };
 
 /**
@@ -70,4 +71,3 @@ export function updateSyncSettings(updates: Partial<SyncSettings>): void {
 export function resetSettings(): void {
   saveSettings({ ...DEFAULT_SETTINGS });
 }
-

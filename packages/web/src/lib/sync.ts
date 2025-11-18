@@ -21,14 +21,14 @@ export interface SyncProvider {
 }
 
 interface TokenResponse {
-  token: string; // Y-Sweet's full WebSocket URL with auth (e.g. ws://localhost:8091/d/doc-id/ws)
-  url: string; // Base URL (optional, for reference)
+  token: string; // Y-Sweet's internal WebSocket URL (e.g. ws://y-sweet:8091/d/doc-id/ws)
+  url?: string;
   docId: string;
 }
 
 class YSweetSyncProvider implements SyncProvider {
   private ydoc: Y.Doc;
-  private tokenUrl: string;
+  private baseUrl: string;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
   private reconnectDelay = 1000; // Start with 1 second
@@ -40,22 +40,69 @@ class YSweetSyncProvider implements SyncProvider {
 
   constructor(
     ydoc: Y.Doc,
-    tokenUrl: string
+    baseUrl: string
   ) {
     this.ydoc = ydoc;
-    this.tokenUrl = tokenUrl;
+    // Ensure base URL has no trailing slash
+    this.baseUrl = baseUrl.replace(/\/$/, '');
+  }
+
+  /**
+   * Rewrite internal WebSocket URL to public URL based on configuration
+   */
+  private rewriteTokenUrl(internalUrl: string): string {
+    try {
+      // Parse the base URL (configuration)
+      const base = new URL(this.baseUrl);
+      
+      // Parse the internal URL from token server
+      // (might be ws://y-sweet:8091/... or similar)
+      // We need to handle the case where it's not a valid URL if something goes wrong,
+      // but we assume it is valid.
+      // Note: The internal URL might use a hostname that is not resolvable here,
+      // but we only need its path.
+      let internalPath = '';
+      try {
+        const internalObj = new URL(internalUrl);
+        internalPath = internalObj.pathname + internalObj.search;
+      } catch (e) {
+        // Fallback if internalUrl is not a full URL (unlikely)
+        console.warn('[YSweetSync] Could not parse internal URL, using as is:', internalUrl);
+        return internalUrl;
+      }
+
+      // Determine WebSocket protocol based on HTTP protocol
+      const wsProtocol = base.protocol === 'https:' ? 'wss:' : 'ws:';
+      
+      // Construct the new URL
+      // Use the host from configuration
+      const newUrl = `${wsProtocol}//${base.host}${internalPath}`;
+      
+      return newUrl;
+    } catch (error) {
+      console.error('[YSweetSync] Error rewriting token URL:', error);
+      return internalUrl;
+    }
   }
 
   /**
    * Fetch token and connection details from token server
    */
-  private async fetchConnectionInfo(): Promise<TokenResponse> {
-    const response = await fetch(this.tokenUrl);
+  private async fetchConnectionInfo(): Promise<{ token: string; docId: string }> {
+    const tokenEndpoint = `${this.baseUrl}/token`;
+    const response = await fetch(tokenEndpoint);
     if (!response.ok) {
       throw new Error(`Failed to fetch token: ${response.statusText}`);
     }
-    const data = await response.json();
-    return data;
+    const data: TokenResponse = await response.json();
+    
+    // Rewrite the token URL to be accessible from the client
+    const publicTokenUrl = this.rewriteTokenUrl(data.token);
+    
+    return {
+      token: publicTokenUrl,
+      docId: data.docId
+    };
   }
 
   /**
@@ -91,10 +138,6 @@ class YSweetSyncProvider implements SyncProvider {
     try {
       // Fetch token and connection details from token server
       const { token, docId } = await this.fetchConnectionInfo();
-
-      // Y-Sweet returns a complete WebSocket URL with auth already included
-      // Format: ws://localhost:8091/d/doc-id/ws
-      // We use this URL directly (don't append token as query param)
 
       // Create WebSocket provider with Y-Sweet's authenticated URL
       this.provider = new WebsocketProvider(token, docId, this.ydoc, {
@@ -185,9 +228,9 @@ class YSweetSyncProvider implements SyncProvider {
  */
 export function createYSweetProvider(
   ydoc: Y.Doc,
-  tokenUrl: string
+  baseUrl: string
 ): SyncProvider {
-  return new YSweetSyncProvider(ydoc, tokenUrl);
+  return new YSweetSyncProvider(ydoc, baseUrl);
 }
 
 /**
@@ -197,4 +240,3 @@ export function isSyncEnabled(): boolean {
   const settings = getSyncSettings();
   return settings.enabled && !!settings.tokenUrl;
 }
-

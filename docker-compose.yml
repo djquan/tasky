@@ -1,8 +1,20 @@
 services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8093:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - token-server
+      - y-sweet
+    networks:
+      - tasky-network
+    restart: unless-stopped
+
   y-sweet:
     image: ghcr.io/jamsocket/y-sweet:latest
-    ports:
-      - "8091:8091"
+    # Ports removed to keep internal only
     environment:
       - SESSION_BACKEND_KEY=${SESSION_BACKEND_KEY:-dev-key-change-in-production-use-openssl-rand-base64-32}
       - YSWEET_STORAGE_PATH=/data
@@ -18,19 +30,14 @@ services:
     build:
       context: ./packages/server
       dockerfile: Dockerfile
-    ports:
-      - "8092:8092"
+    # Ports removed to keep internal only
     environment:
       - PORT=8092
       # Connect to Y-Sweet service in Docker network
       - YSWEET_URL=${YSWEET_URL:-http://y-sweet:8091}
-      # External URL for clients (browser connects to localhost)
-      - YSWEET_CLIENT_URL=${YSWEET_CLIENT_URL:-ws://localhost:8091}
       - DOCUMENT_ID=${DOCUMENT_ID:-tasky-main}
     depends_on:
       y-sweet:
-        condition: service_started
-      web:
         condition: service_started
     restart: unless-stopped
     networks:
