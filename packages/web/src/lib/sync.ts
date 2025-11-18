@@ -90,14 +90,14 @@ class YSweetSyncProvider implements SyncProvider {
 
     try {
       // Fetch token and connection details from token server
-      const { token, docId } = await this.fetchConnectionInfo();
+      const { token } = await this.fetchConnectionInfo();
 
-      // Y-Sweet returns a complete WebSocket URL with auth already included
-      // Format: ws://localhost:8091/d/doc-id/ws
-      // We use this URL directly (don't append token as query param)
-
-      // Create WebSocket provider with Y-Sweet's authenticated URL
-      this.provider = new WebsocketProvider(token, docId, this.ydoc, {
+      // Token server returns the full WebSocket URL (e.g., ws://localhost:8093/d/tasky-main/ws)
+      // WebsocketProvider from y-websocket may append the room parameter to the URL.
+      // To prevent this, we pass the full URL and undefined for the room parameter.
+      // However, if WebsocketProvider still appends, we may need to use a custom provider.
+      // For now, try passing undefined to see if it prevents appending.
+      this.provider = new WebsocketProvider(token, undefined as any, this.ydoc, {
         connect: true,
       });
 

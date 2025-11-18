@@ -37,20 +37,23 @@ const server = http.createServer(async (req, res) => {
       // Generate token for the document (no auth required for single user)
       const clientToken = await manager.getOrCreateDocAndToken(DOCUMENT_ID);
 
-      // clientToken is an object with: { url, baseUrl, docId, authorization }
-      // The url from Y-Sweet uses internal Docker hostname, so we need to replace it
-      // with the client-accessible URL
-      const internalUrl = clientToken.url; // e.g., ws://y-sweet:8091/d/tasky-main/ws
-      // Ensure client URL is WebSocket format (convert http:// to ws:// if needed)
-      const wsClientUrl = YSWEET_CLIENT_URL.startsWith('http://')
-        ? YSWEET_CLIENT_URL.replace(/^http/, 'ws')
-        : YSWEET_CLIENT_URL;
-      const clientTokenUrl = internalUrl.replace(/^ws:\/\/[^/]+/, wsClientUrl);
+      // Extract host and protocol from the request
+      // Use Host header if available, otherwise fall back to environment variable
+      const host = req.headers.host || 'localhost:8093';
+      const protocol = req.headers['x-forwarded-proto'] || 
+                      (req.connection.encrypted ? 'https' : 'http');
+      
+      // Convert http/https to ws/wss for WebSocket URL
+      const wsProtocol = protocol === 'https' ? 'wss' : 'ws';
+      
+      // Construct WebSocket URL using the same host/port as the token request
+      // Format: ws://host:port/d/doc-id/ws
+      const clientTokenUrl = `${wsProtocol}://${host}/d/${clientToken.docId}/ws`;
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
-        token: clientTokenUrl, // WebSocket URL accessible from client
-        url: YSWEET_CLIENT_URL, // Base WebSocket URL (for reference)
+        token: clientTokenUrl, // WebSocket URL accessible from client (through nginx)
+        url: `${wsProtocol}://${host}`, // Base WebSocket URL (for reference)
         docId: clientToken.docId
       }));
     } catch (error) {
