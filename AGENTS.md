@@ -124,13 +124,13 @@ ydoc (single Y.Doc)
    docker-compose up -d
    ```
 
-2. **Configure web app** (`packages/web/.env`):
+2. **Configure web app** (via Settings UI):
 
-   ```env
-   VITE_SYNC_ENABLED=true
-   VITE_YSWEET_URL=ws://localhost:1234
-   VITE_YSWEET_TOKEN_URL=http://localhost:8092/token
-   ```
+   - Open the web app
+   - Go to Settings → Enable sync
+   - Enter token URL: `http://localhost:8093/token` (nginx proxy - recommended)
+   
+   **Note**: The nginx proxy (port 8093) is the recommended setup. For direct access without nginx, use `http://localhost:8092/token` instead.
 
 3. **Sync initializes automatically** when `waitForSync()` is called
 

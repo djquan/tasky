@@ -66,14 +66,13 @@ Tasky supports optional multi-device synchronization via Y-Sweet:
    docker-compose up -d
    ```
 
-2. **Enable sync in web app** (`packages/web/.env`):
+2. **Enable sync in web app** (via Settings UI):
 
-   ```env
-   VITE_SYNC_ENABLED=true
-   VITE_YSWEET_URL=ws://localhost:1234
-   VITE_YSWEET_TOKEN_URL=http://localhost:8092/token
-   ```
+   - Open the web app
+   - Go to Settings → Enable sync
+   - Enter token URL: `http://localhost:8093/token` (nginx proxy - recommended)
+   - Save
 
-3. **Restart dev server** - sync initializes automatically
+3. **Sync initializes automatically** when enabled
 
 See `packages/server/README.md` for detailed setup instructions.

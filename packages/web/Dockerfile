@@ -72,6 +72,12 @@ RUN echo 'server { \
     gzip_min_length 1024; \
     gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json image/svg+xml; \
     \
+    # Handle dev service worker requests gracefully (for production builds) \
+    location = /dev-sw.js { \
+    return 204; \
+    add_header Content-Length 0; \
+    } \
+    \
     # Cache static assets \
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ { \
     expires 1y; \

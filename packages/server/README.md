@@ -4,7 +4,33 @@ Y-Sweet backend sync server for multi-device synchronization.
 
 ## Quick Start
 
-### Manual Setup (Recommended for Development)
+### Using Docker Compose (Recommended)
+
+The simplest way to run the sync backend is using Docker Compose with nginx as a reverse proxy. This provides a single endpoint for the web app to connect to:
+
+```bash
+cd packages/server
+docker-compose up --build
+```
+
+This starts:
+- **Y-Sweet server** (internal, port 8091)
+- **Token server** (internal, port 8092)
+- **Nginx reverse proxy** (port 8093) - **This is the only URL your web app needs!**
+
+**Web App Configuration:**
+
+In your web app settings, configure:
+- **Token URL**: `http://localhost:8093/token`
+
+That's it! Nginx handles routing:
+- `/token` → Token server (for getting connection tokens)
+- `/health` → Token server (health checks)
+- WebSocket connections → Y-Sweet server (for document sync)
+
+### Manual Setup (For Development)
+
+If you prefer to run services manually without Docker:
 
 1. **Start Y-Sweet server** (in terminal 1):
 
@@ -26,26 +52,26 @@ Y-Sweet backend sync server for multi-device synchronization.
    pnpm dev
    ```
 
-### Using Docker Compose (Alternative)
-
-```bash
-# Start Y-Sweet server and token server
-docker-compose up --build
-
-# Check status
-docker-compose ps
-
-# View logs
-docker-compose logs -f
-```
-
-**Note**: Docker setup may require additional Y-Sweet configuration.
+   **Web App Configuration**: Use `http://localhost:8092/token` as the token URL.
 
 ## Configuration
 
-Copy `.env.example` to `.env` and configure:
+### Docker Compose Environment Variables
 
-- `YSWEET_URL` - Y-Sweet server WebSocket URL (default: `ws://localhost:1234`)
+You can customize the Docker setup via environment variables:
+
+```bash
+# Set in your shell or .env file before running docker-compose
+export YSWEET_CLIENT_URL=ws://localhost:8093  # WebSocket URL through nginx (default)
+export DOCUMENT_ID=tasky-main                 # Document identifier (default)
+```
+
+### Manual Setup Environment Variables
+
+For manual setup, configure:
+
+- `YSWEET_URL` - Internal Y-Sweet server URL (default: `http://localhost:8091`)
+- `YSWEET_CLIENT_URL` - Client-accessible Y-Sweet WebSocket URL (default: `ws://localhost:8091`)
 - `PORT` - Token server HTTP port (default: `8092`)
 - `DOCUMENT_ID` - Document identifier (default: `tasky-main`)
 
@@ -64,6 +90,17 @@ For production, configure S3-compatible storage:
 
 ## Architecture
 
-- **Y-Sweet Server**: Handles WebSocket connections and document synchronization
+The sync backend consists of three services:
+
+- **Y-Sweet Server**: Handles WebSocket connections and document synchronization (CRDT-based)
 - **Token Server**: Generates client tokens for document access (no auth required for single user)
+- **Nginx Reverse Proxy**: Provides a single unified endpoint, routing:
+  - HTTP requests (`/token`, `/health`) → Token server
+  - WebSocket connections → Y-Sweet server
+
+**Benefits of the nginx setup:**
+- Web app only needs to know one URL (`http://localhost:8093/token`)
+- Simplified configuration and deployment
+- Single point of entry for all backend services
+- Backward compatible (direct service ports still exposed for advanced use cases)
 

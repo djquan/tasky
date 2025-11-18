@@ -17,7 +17,7 @@ const SETTINGS_KEY = 'tasky-settings';
 
 const DEFAULT_SETTINGS: SyncSettings = {
   enabled: false,
-  tokenUrl: 'http://localhost:8092/token',
+  tokenUrl: 'http://localhost:8093/token', // nginx proxy (recommended)
 };
 
 /**

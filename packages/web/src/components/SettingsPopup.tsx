@@ -148,7 +148,7 @@ export function SettingsPopup() {
                 type="text"
                 value={settings.tokenUrl}
                 onChange={(e) => setSettings({ ...settings, tokenUrl: e.target.value })}
-                placeholder="http://localhost:8092/token"
+                placeholder="http://localhost:8093/token"
                 className="w-full px-3 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-surface dark:bg-dark-surface text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">

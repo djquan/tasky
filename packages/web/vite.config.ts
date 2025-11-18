@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   server: {
     port: 8090
   },
@@ -11,7 +11,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       devOptions: {
-        enabled: true,
+        enabled: mode === 'development',
         type: 'module'
       },
       includeAssets: ['icon.svg'],
@@ -66,4 +66,4 @@ export default defineConfig({
       }
     })
   ]
-});
+}));

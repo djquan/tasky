@@ -18,14 +18,16 @@ services:
     build:
       context: ./packages/server
       dockerfile: Dockerfile
+    # Keep port exposed for backward compatibility, but nginx is the recommended way
     ports:
       - "8092:8092"
     environment:
       - PORT=8092
       # Connect to Y-Sweet service in Docker network
       - YSWEET_URL=${YSWEET_URL:-http://y-sweet:8091}
-      # External URL for clients (browser connects to localhost)
-      - YSWEET_CLIENT_URL=${YSWEET_CLIENT_URL:-ws://localhost:8091}
+      # Client URL through nginx proxy (recommended)
+      # Can be overridden via environment variable for different setups
+      - YSWEET_CLIENT_URL=${YSWEET_CLIENT_URL:-ws://localhost:8093}
       - DOCUMENT_ID=${DOCUMENT_ID:-tasky-main}
     depends_on:
       y-sweet:
@@ -48,6 +50,19 @@ services:
       timeout: 5s
       retries: 10
       start_period: 5s
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8093:8093"
+    volumes:
+      - ./packages/server/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - token-server
+      - y-sweet
+    restart: unless-stopped
+    networks:
+      - tasky-network
 
   web:
     build:

@@ -13,14 +13,16 @@ docker-compose up -d
 ### Access Services
 
 - **Web App**: <http://localhost:80>
-- **Token Server**: <http://localhost:8092/token>
-- **Y-Sweet**: ws://localhost:8091
+- **Nginx Proxy** (recommended): <http://localhost:8093/token>
+- **Token Server** (direct): <http://localhost:8092/token>
+- **Y-Sweet** (direct): ws://localhost:8091
 
 ### Configure Tasky
 
 1. Open <http://localhost:80>
 2. Settings → Enable sync
-3. Enter: `http://localhost:8092/token`
+3. Enter token URL: `http://localhost:8093/token` (nginx proxy - recommended)
+   - Or use `http://localhost:8092/token` for direct token server access
 4. Save
 
 ### View Logs
@@ -39,6 +41,7 @@ docker-compose down
 
 - **Y-Sweet**: Official Docker image (`ghcr.io/jamsocket/y-sweet:latest`) with `serve` command to expose HTTP management API
 - **Token Server**: Generates Y-Sweet client tokens, connects to Y-Sweet via Docker network
+- **Nginx Reverse Proxy**: Provides unified endpoint (port 8093) - routes `/token` to token server and WebSocket connections to Y-Sweet
 - **Web App**: React PWA served via Nginx
 
-All services communicate via the `tasky-network` Docker network. The token server replaces internal Docker hostnames with client-accessible URLs (`localhost:8091`) when returning tokens to browsers.
+All services communicate via the `tasky-network` Docker network. The nginx proxy simplifies configuration by providing a single endpoint (`http://localhost:8093/token`) that handles both token requests and WebSocket connections.
