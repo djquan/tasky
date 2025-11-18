@@ -33,15 +33,15 @@ export async function initializeSync(): Promise<void> {
   }
 
   const settings = getSyncSettings();
-  const { tokenUrl } = settings;
+  const { backendUrl } = settings;
 
-  if (!tokenUrl) {
-    console.warn('[Yjs] Sync enabled but missing token URL');
+  if (!backendUrl) {
+    console.warn('[Yjs] Sync enabled but missing backend URL');
     return;
   }
 
   try {
-    syncProvider = createYSweetProvider(ydoc, tokenUrl);
+    syncProvider = createYSweetProvider(ydoc, backendUrl);
     await syncProvider.connect();
     console.log('[Yjs] Y-Sweet sync provider initialized');
   } catch (error) {

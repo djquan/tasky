@@ -139,20 +139,20 @@ export function SettingsPopup() {
               </div>
             )}
 
-            {/* Token Server URL - the only field needed! */}
+            {/* Backend URL - the only field needed! */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Sync Server URL
+                Backend URL
               </label>
               <input
                 type="text"
-                value={settings.tokenUrl}
-                onChange={(e) => setSettings({ ...settings, tokenUrl: e.target.value })}
-                placeholder="http://localhost:8092/token"
+                value={settings.backendUrl}
+                onChange={(e) => setSettings({ ...settings, backendUrl: e.target.value })}
+                placeholder="http://localhost:8080"
                 className="w-full px-3 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-surface dark:bg-dark-surface text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                URL of your sync server (provides connection details and tokens)
+                Base URL of your sync backend (e.g., http://localhost:8080 or http://100.64.x.x:8080)
               </p>
             </div>
           </section>

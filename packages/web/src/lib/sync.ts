@@ -21,14 +21,13 @@ export interface SyncProvider {
 }
 
 interface TokenResponse {
-  token: string; // Y-Sweet's full WebSocket URL with auth (e.g. ws://localhost:8091/d/doc-id/ws)
-  url: string; // Base URL (optional, for reference)
-  docId: string;
+  docId: string; // Document ID
+  path: string; // WebSocket path (e.g., /d/doc-id/ws)
 }
 
 class YSweetSyncProvider implements SyncProvider {
   private ydoc: Y.Doc;
-  private tokenUrl: string;
+  private backendUrl: string; // Base backend URL (e.g., http://localhost:8080)
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
   private reconnectDelay = 1000; // Start with 1 second
@@ -40,22 +39,37 @@ class YSweetSyncProvider implements SyncProvider {
 
   constructor(
     ydoc: Y.Doc,
-    tokenUrl: string
+    backendUrl: string
   ) {
     this.ydoc = ydoc;
-    this.tokenUrl = tokenUrl;
+    // Normalize backend URL (remove trailing slash)
+    this.backendUrl = backendUrl.replace(/\/$/, '');
   }
 
   /**
    * Fetch token and connection details from token server
+   * Returns docId and path - client constructs full WebSocket URL
    */
   private async fetchConnectionInfo(): Promise<TokenResponse> {
-    const response = await fetch(this.tokenUrl);
+    // Automatically append /token to backend URL
+    const tokenUrl = `${this.backendUrl}/token`;
+    const response = await fetch(tokenUrl);
     if (!response.ok) {
       throw new Error(`Failed to fetch token: ${response.statusText}`);
     }
     const data = await response.json();
     return data;
+  }
+
+  /**
+   * Construct WebSocket URL from backend URL
+   * Converts http://host:port → ws://host:port
+   *         https://host → wss://host
+   */
+  private getWebSocketBaseUrl(): string {
+    const url = new URL(this.backendUrl);
+    const wsProto = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${wsProto}//${url.host}`;
   }
 
   /**
@@ -89,15 +103,19 @@ class YSweetSyncProvider implements SyncProvider {
     this.reconnectAttempts = 0;
 
     try {
-      // Fetch token and connection details from token server
-      const { token, docId } = await this.fetchConnectionInfo();
+      // Fetch path and docId from token server
+      const { docId, path } = await this.fetchConnectionInfo();
 
-      // Y-Sweet returns a complete WebSocket URL with auth already included
-      // Format: ws://localhost:8091/d/doc-id/ws
-      // We use this URL directly (don't append token as query param)
+      // Construct full WebSocket URL using backend URL
+      // Example: http://localhost:8080 → ws://localhost:8080 + /d/tasky-main/ws
+      const wsBaseUrl = this.getWebSocketBaseUrl();
+      const wsUrl = `${wsBaseUrl}${path}`;
 
-      // Create WebSocket provider with Y-Sweet's authenticated URL
-      this.provider = new WebsocketProvider(token, docId, this.ydoc, {
+      console.log('[YSweetSync] Backend:', this.backendUrl);
+      console.log('[YSweetSync] Connecting to:', wsUrl);
+
+      // Create WebSocket provider with constructed URL
+      this.provider = new WebsocketProvider(wsUrl, docId, this.ydoc, {
         connect: true,
       });
 
@@ -185,9 +203,9 @@ class YSweetSyncProvider implements SyncProvider {
  */
 export function createYSweetProvider(
   ydoc: Y.Doc,
-  tokenUrl: string
+  backendUrl: string
 ): SyncProvider {
-  return new YSweetSyncProvider(ydoc, tokenUrl);
+  return new YSweetSyncProvider(ydoc, backendUrl);
 }
 
 /**
@@ -195,6 +213,6 @@ export function createYSweetProvider(
  */
 export function isSyncEnabled(): boolean {
   const settings = getSyncSettings();
-  return settings.enabled && !!settings.tokenUrl;
+  return settings.enabled && !!settings.backendUrl;
 }
 

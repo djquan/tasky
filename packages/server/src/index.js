@@ -10,8 +10,6 @@ import { DocumentManager } from '@y-sweet/sdk';
 
 const PORT = process.env.PORT || 8092;
 const YSWEET_URL = process.env.YSWEET_URL || 'http://localhost:8091';
-// Client URL is what we return to clients (may be different from internal URL in Docker)
-const YSWEET_CLIENT_URL = process.env.YSWEET_CLIENT_URL || 'ws://localhost:8091';
 const DOCUMENT_ID = process.env.DOCUMENT_ID || 'tasky-main';
 
 // Initialize DocumentManager with HTTP URL
@@ -37,21 +35,16 @@ const server = http.createServer(async (req, res) => {
       // Generate token for the document (no auth required for single user)
       const clientToken = await manager.getOrCreateDocAndToken(DOCUMENT_ID);
 
-      // clientToken is an object with: { url, baseUrl, docId, authorization }
-      // The url from Y-Sweet uses internal Docker hostname, so we need to replace it
-      // with the client-accessible URL
-      const internalUrl = clientToken.url; // e.g., ws://y-sweet:8091/d/tasky-main/ws
-      // Ensure client URL is WebSocket format (convert http:// to ws:// if needed)
-      const wsClientUrl = YSWEET_CLIENT_URL.startsWith('http://')
-        ? YSWEET_CLIENT_URL.replace(/^http/, 'ws')
-        : YSWEET_CLIENT_URL;
-      const clientTokenUrl = internalUrl.replace(/^ws:\/\/[^/]+/, wsClientUrl);
+      // clientToken.url contains: ws://y-sweet:8091/d/tasky-main/ws
+      // Extract just the path portion (everything after the hostname)
+      const urlMatch = clientToken.url.match(/^ws:\/\/[^/]+(.*)$/);
+      const path = urlMatch ? urlMatch[1] : `/d/${clientToken.docId}/ws`;
 
+      // Return minimal data - client will construct full URL using same host as this request
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
-        token: clientTokenUrl, // WebSocket URL accessible from client
-        url: YSWEET_CLIENT_URL, // Base WebSocket URL (for reference)
-        docId: clientToken.docId
+        docId: clientToken.docId,
+        path: path, // e.g., /d/tasky-main/ws
       }));
     } catch (error) {
       console.error('Error generating token:', error);
@@ -77,6 +70,6 @@ server.listen(PORT, () => {
   console.log(`Y-Sweet token server running on http://localhost:${PORT}`);
   console.log(`Document ID: ${DOCUMENT_ID}`);
   console.log(`Y-Sweet internal URL: ${YSWEET_URL}`);
-  console.log(`Y-Sweet client URL: ${YSWEET_CLIENT_URL}`);
+  console.log(`Client constructs WebSocket URL from token endpoint host`);
 });
 

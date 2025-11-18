@@ -7,8 +7,9 @@
 
 export interface SyncSettings {
   enabled: boolean;
-  tokenUrl: string;
+  backendUrl: string; // Just the backend base URL (e.g., http://localhost:8080)
   // Legacy fields for backward compatibility (no longer shown in UI)
+  tokenUrl?: string; // Deprecated: use backendUrl instead
   ySweetUrl?: string;
   documentId?: string;
 }
@@ -17,7 +18,7 @@ const SETTINGS_KEY = 'tasky-settings';
 
 const DEFAULT_SETTINGS: SyncSettings = {
   enabled: false,
-  tokenUrl: 'http://localhost:8092/token',
+  backendUrl: 'http://localhost:8080',
 };
 
 /**
@@ -28,6 +29,13 @@ export function loadSettings(): SyncSettings {
     const stored = localStorage.getItem(SETTINGS_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
+
+      // Migrate from old tokenUrl format to new backendUrl format
+      if (parsed.tokenUrl && !parsed.backendUrl) {
+        // Strip /token suffix if present
+        parsed.backendUrl = parsed.tokenUrl.replace(/\/token$/, '');
+      }
+
       // Merge with defaults to handle missing fields
       return { ...DEFAULT_SETTINGS, ...parsed };
     }
