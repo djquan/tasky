@@ -76,24 +76,18 @@ export function QuickEntry() {
     if (quickEntryOpen) {
       // Prefill date if on Today view
       if (currentView === 'today') {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setWhen('today');
-         
         setScheduledDate(null);
       } else {
         // Reset to defaults if not on Today view
-         
         setWhen('anytime');
-         
         setScheduledDate(null);
       }
 
       // Prefill list if on Project or Area view
       if (currentView === 'project' || currentView === 'area') {
-         
         setListId(contextId);
       } else {
-         
         setListId(null);
       }
 
