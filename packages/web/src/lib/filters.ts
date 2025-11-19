@@ -141,10 +141,14 @@ export function getTodayTasks(): Task[] {
 
 /**
  * Get tasks for This Evening section within Today view
+ * Optimized to avoid double filtering
  */
 export function getThisEveningTasks(): Task[] {
-  const tasks = getTodayTasks();
-  return tasks.filter(task => task.when === 'evening');
+  const tasks = getAllTasks();
+  return tasks.filter(task => {
+    if (task.completed || task.canceled) return false;
+    return task.when === 'evening';
+  });
 }
 
 /**
