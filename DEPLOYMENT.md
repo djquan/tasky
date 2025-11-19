@@ -1,13 +1,13 @@
 # Tasky Deployment Guide
 
-This guide covers deploying Tasky with Docker Compose, with specific instructions for Coolify and general VPS deployments.
+This guide covers deploying Tasky with Docker Compose on any server or VPS.
 
 ## Prerequisites
 
 - Docker and Docker Compose installed
-- (Optional) Coolify for automated deployments
-- (Optional) Tailscale for private network access
-- GitHub repository connected (for Coolify)
+- A server or VPS (DigitalOcean, AWS, Hetzner, etc.)
+- (Optional) Domain name for public access
+- (Optional) Reverse proxy (nginx, Caddy) for SSL/HTTPS
 
 ## Critical: CORS Configuration
 
@@ -18,10 +18,10 @@ This guide covers deploying Tasky with Docker Compose, with specific instruction
 You **MUST** set `ALLOWED_ORIGINS` to include your frontend domain(s):
 
 ```bash
-# For Coolify/Tailscale (internal network)
-ALLOWED_ORIGINS=http://100.x.x.x:8090,http://your-tailscale-ip:8090
+# For local/private network deployment
+ALLOWED_ORIGINS=http://192.168.1.100:8090,http://your-server-ip:8090
 
-# For public deployment
+# For public deployment with domain
 ALLOWED_ORIGINS=https://tasky.yourdomain.com,https://www.tasky.yourdomain.com
 
 # For development + production
@@ -34,7 +34,7 @@ ALLOWED_ORIGINS=http://localhost:8090,https://tasky.yourdomain.com
 
 ### Required Variables
 
-Set these in Coolify's environment variables section or your `.env` file:
+Set these in your `.env` file or environment:
 
 ```bash
 # CRITICAL: Allowed frontend origins for CORS
@@ -57,63 +57,67 @@ DOCUMENT_ID=tasky-main
 openssl rand -base64 32
 ```
 
-### Get Your Tailscale IP
+## Quick Start Deployment
+
+### 1. Clone the Repository
 
 ```bash
-tailscale ip
-# Returns something like: 100.x.x.x
+git clone https://github.com/djquan/tasky.git
+cd tasky
+git checkout quality-2025-11-18
 ```
 
-Then set:
+### 2. Create Environment File
+
+```bash
+cat > .env <<EOF
+ALLOWED_ORIGINS=http://your-server-ip:8090
+SESSION_BACKEND_KEY=$(openssl rand -base64 32)
+DOCUMENT_ID=tasky-main
+EOF
 ```
-YSWEET_CLIENT_URL=ws://100.x.x.x:8091
+
+**Important**: Replace `your-server-ip` with your actual server IP address or domain.
+
+### 3. Start Services
+
+```bash
+docker-compose up -d
 ```
 
-## Deployment Steps
-
-### 1. Create Docker Compose Stack in Coolify
-
-1. Go to Coolify dashboard
-2. Click "New Resource" → "Docker Compose"
-3. Name it: `tasky`
-4. Connect your GitHub repository
-5. Set branch: `main` (or your preferred branch)
-
-### 2. Configure Stack
-
-- **Docker Compose File**: `docker-compose.yml`
-- **Docker Compose File Location**: `/` (root of repo)
-
-### 3. Set Environment Variables
-
-**CRITICAL**: Add these environment variables in Coolify's UI:
-
-1. `ALLOWED_ORIGINS` - Your frontend URL (e.g., `http://100.x.x.x:8090`)
-2. `SESSION_BACKEND_KEY` - Generated secure key
-3. `DOCUMENT_ID` - Optional, defaults to `tasky-main`
-
-### 4. Deploy
-
-Click "Deploy" and watch the build logs. Coolify will:
+This will:
 - Build the web app (takes ~2-3 minutes)
 - Build the token server
 - Pull Y-Sweet image
 - Start all services
 
-### 5. Access Your Services
+### 4. Verify Services Are Running
 
-After deployment, Coolify will show you the ports. Access via your Tailscale IP:
+```bash
+docker-compose ps
+```
 
-- **Web App**: `http://your-tailscale-ip:port` (usually port 80 or Coolify-assigned)
-- **Token Server**: `http://your-tailscale-ip:8092/token`
-- **Y-Sweet**: `ws://your-tailscale-ip:8091`
+All services should show as "Up".
+
+### 5. Access Your Application
+
+Services will be available at:
+
+- **Web App**: `http://your-server-ip:8090`
+- **Sync Server (internal)**: `http://localhost:8093`
+
+The sync server runs behind nginx and is not directly exposed.
 
 ## Configure Tasky App
 
-1. Open the web app in your browser
+Sync is **disabled by default**. The app works perfectly as a local-first PWA without sync.
+
+To enable multi-device sync:
+
+1. Open the web app in your browser (`http://your-server-ip:8090`)
 2. Click the settings icon (sliders) in the sidebar
 3. Toggle "Enable sync" ON
-4. Enter token server URL: `http://your-tailscale-ip:8092/token`
+4. The sync URL is automatically configured (internal nginx routes to sync server)
 5. Click Save
 6. Connection status should show "Connected"
 
@@ -121,15 +125,37 @@ After deployment, Coolify will show you the ports. Access via your Tailscale IP:
 
 ### Services won't start
 
-- Check Coolify logs for each service
-- Verify environment variables are set correctly
-- Ensure Tailscale IP is correct
+```bash
+# Check service status
+docker-compose ps
+
+# View logs for all services
+docker-compose logs
+
+# View logs for specific service
+docker-compose logs web
+docker-compose logs token-server
+docker-compose logs y-sweet
+```
+
+Common issues:
+- Port 8090 already in use (change in docker-compose.yml)
+- Environment variables not set correctly
+- Docker not running or insufficient permissions
 
 ### Web app shows 404
 
-- Check that nginx is serving files correctly
-- Verify build completed successfully
-- Check nginx logs in Coolify
+```bash
+# Check nginx is serving files
+docker-compose logs web
+
+# Rebuild if needed
+docker-compose up -d --build web
+```
+
+Verify:
+- Build completed successfully (check logs during startup)
+- Web container is running: `docker-compose ps web`
 
 ### Sync not working
 
@@ -162,20 +188,36 @@ After deployment, Coolify will show you the ports. Access via your Tailscale IP:
 
 ### Port conflicts
 
-- Coolify will auto-assign ports if conflicts occur
-- Update YSWEET_CLIENT_URL with correct port if changed
+If port 8090 is already in use:
+
+```bash
+# Edit docker-compose.yml
+# Change the web service port mapping:
+# ports:
+#   - "8091:80"  # Changed from 8090 to 8091
+
+# Update ALLOWED_ORIGINS in .env:
+ALLOWED_ORIGINS=http://your-server-ip:8091
+
+# Restart services
+docker-compose down
+docker-compose up -d
+```
 
 ## Updating Deployment
 
-Simply push to your GitHub repository:
+To update to the latest version:
 
 ```bash
-git add .
-git commit -m "Update app"
-git push origin main
-```
+# Pull latest changes
+git pull origin quality-2025-11-18
 
-Coolify will automatically detect the push and redeploy.
+# Rebuild and restart services
+docker-compose up -d --build
+
+# View logs to verify
+docker-compose logs -f
+```
 
 ## Data Persistence
 
@@ -193,48 +235,96 @@ docker run --rm -v tasky_y-sweet-data:/data \
 
 - [ ] Generated secure SESSION_BACKEND_KEY
 - [ ] **Set ALLOWED_ORIGINS with your frontend URL(s)**
-- [ ] Set all environment variables in Coolify
-- [ ] Verified Tailscale IP or domain name
+- [ ] Created `.env` file with all required variables
+- [ ] Verified server IP or domain name
 - [ ] Tested web app loads correctly
-- [ ] **Verified no CORS errors in browser console**
+- [ ] **Verified no CORS errors in browser console (F12)**
 - [ ] Tested sync between devices
 - [ ] Verified data persists after restart
 - [ ] Set up backups (optional but recommended)
+- [ ] (Optional) Configured reverse proxy for HTTPS
+- [ ] (Optional) Set up monitoring/uptime checks
 
-## Quick Deployment Commands
+## Production Deployment with HTTPS
 
-### For Coolify (with Tailscale)
+For production use with a domain name and SSL:
 
-```bash
-# After getting your Coolify-assigned port (check Coolify UI)
-# Set environment variable:
-ALLOWED_ORIGINS=http://100.x.x.x:PORT
+### 1. Point Domain to Server
 
-# Where PORT is the Coolify-assigned port for the web service
+Add A record in your DNS:
+```
+A    tasky.yourdomain.com    →  your-server-ip
 ```
 
-### For VPS (Docker Compose)
+### 2. Update Environment
 
 ```bash
-# 1. Clone repo
-git clone https://github.com/djquan/tasky.git
-cd tasky
-git checkout quality-2025-11-18
+# Update ALLOWED_ORIGINS for HTTPS
+ALLOWED_ORIGINS=https://tasky.yourdomain.com
+```
 
-# 2. Create .env file
-cat > .env <<EOF
-ALLOWED_ORIGINS=http://your-server-ip:8090
-SESSION_BACKEND_KEY=$(openssl rand -base64 32)
-DOCUMENT_ID=tasky-main
-EOF
+### 3. Setup Reverse Proxy (Caddy - Recommended)
 
-# 3. Start services
-docker-compose up -d
+Install Caddy on your host machine:
 
-# 4. Check logs
-docker-compose logs -f
+```bash
+# Install Caddy
+sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+sudo apt update
+sudo apt install caddy
 
-# 5. Access at http://your-server-ip:8090
+# Create Caddyfile
+sudo nano /etc/caddy/Caddyfile
+```
+
+Add to Caddyfile:
+```
+tasky.yourdomain.com {
+    reverse_proxy localhost:8090
+}
+```
+
+```bash
+# Restart Caddy (automatic HTTPS!)
+sudo systemctl restart caddy
+```
+
+### Alternative: nginx with Let's Encrypt
+
+```bash
+# Install nginx and certbot
+sudo apt install nginx certbot python3-certbot-nginx
+
+# Create nginx config
+sudo nano /etc/nginx/sites-available/tasky
+```
+
+Add:
+```nginx
+server {
+    listen 80;
+    server_name tasky.yourdomain.com;
+
+    location / {
+        proxy_pass http://localhost:8090;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+```bash
+# Enable site
+sudo ln -s /etc/nginx/sites-available/tasky /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+
+# Get SSL certificate
+sudo certbot --nginx -d tasky.yourdomain.com
 ```
 
 ### Testing CORS Configuration
