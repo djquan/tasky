@@ -1,4 +1,12 @@
-import { generateId, now, type Task, type TaskInput, type WhenValue } from '@tasky/shared';
+import {
+  generateId,
+  now,
+  type Task,
+  type TaskInput,
+  type WhenValue,
+  INPUT_LIMITS,
+  sanitizeInput
+} from '@tasky/shared';
 import {
   tasksMap,
   inboxSortOrder,
@@ -29,10 +37,14 @@ function _createTaskInternal(input: Partial<TaskInput>): Task {
   const id = generateId();
   const timestamp = now();
 
+  // Sanitize and validate inputs
+  const title = sanitizeInput(input.title || '').slice(0, INPUT_LIMITS.TASK_TITLE);
+  const notes = sanitizeInput(input.notes || '').slice(0, INPUT_LIMITS.TASK_NOTES);
+
   const task: Task = {
     id,
-    title: input.title || '',
-    notes: input.notes || '',
+    title,
+    notes,
     when: input.when || 'anytime',  // Default to anytime (not inbox - inbox is dynamic)
     scheduledDate: input.scheduledDate ?? null,
     deadline: input.deadline ?? null,
@@ -64,13 +76,17 @@ export function createTask(input: Partial<TaskInput>): Task {
     return _createTaskInternal(input);
   }
 
+  // Sanitize and validate inputs
+  const title = sanitizeInput(input.title || '').slice(0, INPUT_LIMITS.TASK_TITLE);
+  const notes = sanitizeInput(input.notes || '').slice(0, INPUT_LIMITS.TASK_NOTES);
+
   // Create task object but don't add to map yet - command will do that
   const id = generateId();
   const timestamp = now();
   const task: Task = {
     id,
-    title: input.title || '',
-    notes: input.notes || '',
+    title,
+    notes,
     when: input.when || 'anytime',
     scheduledDate: input.scheduledDate ?? null,
     deadline: input.deadline ?? null,
@@ -111,9 +127,18 @@ function _updateTaskInternal(id: string, updates: Partial<Task>): void {
   const oldWhen = task.when;
   const oldListId = task.listId;
 
+  // Sanitize and validate string inputs if provided
+  const sanitizedUpdates = { ...updates };
+  if (updates.title !== undefined) {
+    sanitizedUpdates.title = sanitizeInput(updates.title).slice(0, INPUT_LIMITS.TASK_TITLE);
+  }
+  if (updates.notes !== undefined) {
+    sanitizedUpdates.notes = sanitizeInput(updates.notes).slice(0, INPUT_LIMITS.TASK_NOTES);
+  }
+
   const updatedTask: Task = {
     ...task,
-    ...updates,
+    ...sanitizedUpdates,
     updatedAt: now()
   };
 
@@ -144,8 +169,17 @@ export function updateTask(id: string, updates: Partial<Task>): void {
     return;
   }
 
+  // Sanitize and validate string inputs if provided
+  const sanitizedUpdates = { ...updates };
+  if (updates.title !== undefined) {
+    sanitizedUpdates.title = sanitizeInput(updates.title).slice(0, INPUT_LIMITS.TASK_TITLE);
+  }
+  if (updates.notes !== undefined) {
+    sanitizedUpdates.notes = sanitizeInput(updates.notes).slice(0, INPUT_LIMITS.TASK_NOTES);
+  }
+
   const oldTask = { ...task };
-  const command = new UpdateTaskCommand(oldTask, updates);
+  const command = new UpdateTaskCommand(oldTask, sanitizedUpdates);
   undoManager.execute(command);
 }
 

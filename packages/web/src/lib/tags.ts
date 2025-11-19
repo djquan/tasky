@@ -1,4 +1,11 @@
-import { generateId, now, type Tag, type TagInput } from '@tasky/shared';
+import {
+  generateId,
+  now,
+  type Tag,
+  type TagInput,
+  INPUT_LIMITS,
+  sanitizeInput
+} from '@tasky/shared';
 import { tagsMap, tagsSortOrder } from './yjs';
 import { DEFAULT_TAG_COLOR } from '../constants';
 import { undoManager } from './undo';
@@ -15,9 +22,12 @@ function _createTagInternal(input: Partial<TagInput>): Tag {
   const id = generateId();
   const timestamp = now();
 
+  // Sanitize and validate input
+  const name = sanitizeInput(input.name || '').slice(0, INPUT_LIMITS.TAG_NAME);
+
   const tag: Tag = {
     id,
-    name: input.name || '',
+    name,
     parentId: input.parentId ?? null,
     color: input.color || DEFAULT_TAG_COLOR,
     createdAt: timestamp,
@@ -39,12 +49,15 @@ export function createTag(input: Partial<TagInput>): Tag {
     return _createTagInternal(input);
   }
 
+  // Sanitize and validate input
+  const name = sanitizeInput(input.name || '').slice(0, INPUT_LIMITS.TAG_NAME);
+
   // Create tag object but don't add to map yet - command will do that
   const id = generateId();
   const timestamp = now();
   const tag: Tag = {
     id,
-    name: input.name || '',
+    name,
     parentId: input.parentId ?? null,
     color: input.color || DEFAULT_TAG_COLOR,
     createdAt: timestamp,
@@ -83,9 +96,15 @@ function _updateTagInternal(id: string, updates: Partial<Tag>): void {
     return;
   }
 
+  // Sanitize and validate string inputs if provided
+  const sanitizedUpdates = { ...updates };
+  if (updates.name !== undefined) {
+    sanitizedUpdates.name = sanitizeInput(updates.name).slice(0, INPUT_LIMITS.TAG_NAME);
+  }
+
   const updated: Tag = {
     ...tag,
-    ...updates,
+    ...sanitizedUpdates,
     updatedAt: now()
   };
 
@@ -107,8 +126,14 @@ export function updateTag(id: string, updates: Partial<Tag>): void {
     return;
   }
 
+  // Sanitize and validate string inputs if provided
+  const sanitizedUpdates = { ...updates };
+  if (updates.name !== undefined) {
+    sanitizedUpdates.name = sanitizeInput(updates.name).slice(0, INPUT_LIMITS.TAG_NAME);
+  }
+
   const oldTag = { ...tag };
-  const command = new UpdateTagCommand(oldTag, updates);
+  const command = new UpdateTagCommand(oldTag, sanitizedUpdates);
   undoManager.execute(command);
 }
 
