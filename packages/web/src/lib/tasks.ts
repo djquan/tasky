@@ -17,6 +17,7 @@ import {
 } from './yjs';
 import { undoManager } from './undo';
 import { addToSortOrder, removeFromSortOrder } from './sortOrderUtils';
+import { handleOperationError } from './errorHandler';
 import {
   CreateTaskCommand,
   UpdateTaskCommand,
@@ -121,7 +122,10 @@ export function getTask(id: string): Task | undefined {
 function _updateTaskInternal(id: string, updates: Partial<Task>): void {
   const task = tasksMap.get(id);
   if (!task) {
-    console.warn(`[updateTask] Task not found: ${id}`);
+    handleOperationError('updateTask', new Error(`Task not found: ${id}`), {
+      entityType: 'task',
+      entityId: id,
+    });
     return;
   }
 
@@ -161,7 +165,10 @@ function _updateTaskInternal(id: string, updates: Partial<Task>): void {
 export function updateTask(id: string, updates: Partial<Task>): void {
   const task = tasksMap.get(id);
   if (!task) {
-    console.warn(`[updateTask] Task not found: ${id}`);
+    handleOperationError('updateTask', new Error(`Task not found: ${id}`), {
+      entityType: 'task',
+      entityId: id,
+    });
     return;
   }
 
