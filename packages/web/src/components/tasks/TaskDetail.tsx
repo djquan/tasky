@@ -4,6 +4,7 @@ import { useNavigation } from '../../store/navigation';
 import { updateTask, cancelTask, toggleTask } from '../../lib/tasks';
 import { WhenPicker } from '../pickers/WhenPicker';
 import { ProjectAreaPicker } from '../pickers/ProjectAreaPicker';
+import { formatDate } from '../../lib/dateUtils';
 import type { WhenValue } from '@tasky/shared';
 
 export function TaskDetail() {
@@ -71,47 +72,17 @@ export function TaskDetail() {
     return null;
   }
 
-  const formatDeadline = (timestamp: number) => {
-    const date = new Date(timestamp);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      return 'Tomorrow';
-    } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
-  };
-
-  const formatScheduledDate = (timestamp: number) => {
-    const date = new Date(timestamp);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      return 'Tomorrow';
-    } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
-  };
-
   const getWhenDisplay = () => {
     // Priority: scheduledDate > deadline > when
     if (task.scheduledDate) {
-      return { icon: '📅', text: formatScheduledDate(task.scheduledDate) };
+      return { icon: '📅', text: formatDate(task.scheduledDate) };
     }
     if (task.deadline) {
       // eslint-disable-next-line react-hooks/purity
       const isOverdue = task.deadline < Date.now();
       return {
         icon: isOverdue ? '⚠️' : '📅',
-        text: formatDeadline(task.deadline),
+        text: formatDate(task.deadline),
         isOverdue
       };
     }

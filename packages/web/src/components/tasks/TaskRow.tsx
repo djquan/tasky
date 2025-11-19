@@ -2,6 +2,7 @@ import { memo, useCallback, useMemo } from 'react';
 import { toggleTask } from '../../lib/tasks';
 import { useTags } from '../../hooks/useEntities';
 import { useNavigation } from '../../store/navigation';
+import { formatDate } from '../../lib/dateUtils';
 import type { Task } from '@tasky/shared';
 
 interface TaskRowProps {
@@ -49,36 +50,6 @@ function TaskRowComponent({ task, allTaskIds }: TaskRowProps) {
     }
   }, [task.id, allTaskIds, isSelected, selectedTaskIds.size, toggleTaskSelection, selectTaskRange, selectTask, openTaskDetail]);
 
-  const formatDeadline = (timestamp: number) => {
-    const date = new Date(timestamp);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      return 'Tomorrow';
-    } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
-  };
-
-  const formatScheduledDate = (timestamp: number) => {
-    const date = new Date(timestamp);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      return 'Tomorrow';
-    } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
-  };
-
   const whenDisplay = useMemo(() => {
     // Don't show when info on Today, Upcoming, or Someday screens - it's redundant
     if (currentView === 'today' || currentView === 'upcoming' || currentView === 'someday') {
@@ -87,14 +58,14 @@ function TaskRowComponent({ task, allTaskIds }: TaskRowProps) {
 
     // Priority: scheduledDate > deadline > when
     if (task.scheduledDate) {
-      return { icon: '📅', text: formatScheduledDate(task.scheduledDate) };
+      return { icon: '📅', text: formatDate(task.scheduledDate) };
     }
     if (task.deadline) {
       const now = Date.now();
       const isOverdue = task.deadline < now;
       return {
         icon: isOverdue ? '⚠️' : '📅',
-        text: formatDeadline(task.deadline),
+        text: formatDate(task.deadline),
         isOverdue
       };
     }
