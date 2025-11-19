@@ -21,8 +21,14 @@ function isValidUrl(urlString: string): boolean {
 
 export interface SyncSettings {
   enabled: boolean;
-  tokenUrl: string; // Now represents the base Sync URL (e.g. http://localhost:8080)
-  // Legacy fields for backward compatibility (no longer shown in UI)
+  tokenUrl: string; // The base Sync URL (e.g. http://localhost:8080)
+}
+
+/**
+ * Legacy settings interface for migration
+ * @deprecated
+ */
+interface LegacySyncSettings extends SyncSettings {
   ySweetUrl?: string;
   documentId?: string;
 }
@@ -41,15 +47,34 @@ const DEFAULT_SETTINGS: SyncSettings = {
 };
 
 /**
+ * Migrates legacy settings to current format
+ */
+function migrateSettings(settings: LegacySyncSettings): SyncSettings {
+  const { ySweetUrl, documentId, ...current } = settings;
+
+  // If migration occurred (legacy fields were present), save cleaned settings
+  if (ySweetUrl !== undefined || documentId !== undefined) {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(current));
+    } catch (error) {
+      console.error('[Settings] Failed to save migrated settings:', error);
+    }
+  }
+
+  return current;
+}
+
+/**
  * Load settings from localStorage
  */
 export function loadSettings(): SyncSettings {
   try {
     const stored = localStorage.getItem(SETTINGS_KEY);
     if (stored) {
-      const parsed = JSON.parse(stored);
-      // Merge with defaults to handle missing fields
-      return { ...DEFAULT_SETTINGS, ...parsed };
+      const parsed = JSON.parse(stored) as LegacySyncSettings;
+      // Migrate legacy fields and merge with defaults
+      const migrated = migrateSettings(parsed);
+      return { ...DEFAULT_SETTINGS, ...migrated };
     }
   } catch (error) {
     console.error('[Settings] Failed to load settings:', error);
