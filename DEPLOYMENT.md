@@ -64,7 +64,7 @@ openssl rand -base64 32
 ```bash
 git clone https://github.com/djquan/tasky.git
 cd tasky
-git checkout quality-2025-11-18
+git checkout main
 ```
 
 ### 2. Create Environment File
@@ -86,6 +86,7 @@ docker-compose up -d
 ```
 
 This will:
+
 - Build the web app (takes ~2-3 minutes)
 - Build the token server
 - Pull Y-Sweet image
@@ -150,6 +151,7 @@ docker-compose logs y-sweet
 ```
 
 Common issues:
+
 - Port 8090 already in use (change in docker-compose.yml)
 - Environment variables not set correctly
 - Docker not running or insufficient permissions
@@ -165,6 +167,7 @@ docker-compose up -d --build web
 ```
 
 Verify:
+
 - Build completed successfully (check logs during startup)
 - Web container is running: `docker-compose ps web`
 
@@ -174,6 +177,7 @@ Verify:
 
 1. Open browser DevTools console (F12)
 2. Look for CORS-related errors like:
+
    ```
    Access to fetch at 'http://...' has been blocked by CORS policy
    ```
@@ -183,15 +187,18 @@ Verify:
    - Ensure your frontend URL matches exactly (check protocol: http vs https)
    - Include port number if not standard (80/443)
    - Restart services after changing environment variables:
+
      ```bash
      docker-compose restart token-server
      ```
 
 **Other sync issues**:
+
 - Check token server logs: `docker-compose logs token-server`
 - Ensure Y-Sweet service is running: `docker-compose ps`
 - Verify SESSION_BACKEND_KEY is set
 - Test token endpoint manually:
+
   ```bash
   curl -H "Origin: http://your-frontend-url" http://your-server:8093/token
   # Should return: {"clientToken":"..."}
@@ -221,7 +228,7 @@ To update to the latest version:
 
 ```bash
 # Pull latest changes
-git pull origin quality-2025-11-18
+git pull origin main
 
 # Rebuild and restart services
 docker-compose up -d --build
@@ -235,6 +242,7 @@ docker-compose logs -f
 Y-Sweet data is stored in a Docker volume (`y-sweet-data`). This persists across deployments.
 
 To backup:
+
 ```bash
 # SSH into your server
 docker run --rm -v tasky_y-sweet-data:/data \
@@ -263,6 +271,7 @@ For production use with a domain name and SSL:
 ### 1. Point Domains to Server
 
 Add A records in your DNS:
+
 ```
 A    tasky.yourdomain.com     →  your-server-ip  (web app)
 A    sync.tasky.yourdomain.com →  your-server-ip  (sync server)
@@ -295,6 +304,7 @@ sudo nano /etc/caddy/Caddyfile
 ```
 
 Add to Caddyfile:
+
 ```
 # Web app
 tasky.yourdomain.com {
@@ -327,6 +337,7 @@ sudo nano /etc/nginx/sites-available/tasky
 ```
 
 Add:
+
 ```nginx
 # Web app
 server {
@@ -384,4 +395,3 @@ curl -H "Origin: http://your-frontend-url" \
 # Should see:
 # Access-Control-Allow-Origin: http://your-frontend-url
 ```
-
