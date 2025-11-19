@@ -2,61 +2,13 @@ import type { Task, WhenValue } from '@tasky/shared';
 import type { Command } from '../../undo';
 import {
   tasksMap,
-  inboxSortOrder,
   todaySortOrder,
   anytimeSortOrder,
   somedaySortOrder,
   listTaskSortOrders
 } from '../../yjs';
 import { now } from '@tasky/shared';
-
-/**
- * Helper to add task to sort order
- */
-function addToSortOrder(task: Task): void {
-  const id = task.id;
-
-  if (task.listId) {
-    const sortOrder = listTaskSortOrders.get(task.listId) || [];
-    listTaskSortOrders.set(task.listId, [...sortOrder, id]);
-  } else {
-    switch (task.when) {
-      case 'today':
-      case 'evening':
-        todaySortOrder.push([id]);
-        break;
-      case 'anytime':
-        anytimeSortOrder.push([id]);
-        break;
-      case 'someday':
-        somedaySortOrder.push([id]);
-        break;
-    }
-  }
-}
-
-/**
- * Helper to remove task from sort order
- */
-function removeFromSortOrder(task: Task): void {
-  const id = task.id;
-
-  if (task.listId) {
-    const sortOrder = listTaskSortOrders.get(task.listId) || [];
-    const filtered = sortOrder.filter(taskId => taskId !== id);
-    listTaskSortOrders.set(task.listId, filtered);
-    return;
-  }
-
-  const arrays = [inboxSortOrder, todaySortOrder, anytimeSortOrder, somedaySortOrder];
-  for (const arr of arrays) {
-    const index = arr.toArray().indexOf(id);
-    if (index !== -1) {
-      arr.delete(index, 1);
-      return;
-    }
-  }
-}
+import { addToSortOrder, removeFromSortOrder } from '../../sortOrderUtils';
 
 /**
  * Capture current sort order state for a task

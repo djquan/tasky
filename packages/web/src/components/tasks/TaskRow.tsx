@@ -1,6 +1,8 @@
+import { memo, useCallback, useMemo } from 'react';
 import { toggleTask } from '../../lib/tasks';
 import { useTags } from '../../hooks/useEntities';
 import { useNavigation } from '../../store/navigation';
+import { formatDate } from '../../lib/dateUtils';
 import type { Task } from '@tasky/shared';
 
 interface TaskRowProps {
@@ -8,19 +10,22 @@ interface TaskRowProps {
   allTaskIds: string[];
 }
 
-export function TaskRow({ task, allTaskIds }: TaskRowProps) {
+function TaskRowComponent({ task, allTaskIds }: TaskRowProps) {
   const { selectTask, toggleTaskSelection, selectTaskRange, openTaskDetail, currentView, selectedTaskIds } = useNavigation();
   const { tags } = useTags();
 
-  const taskTags = tags.filter(t => task.tags.includes(t.id));
+  const taskTags = useMemo(
+    () => tags.filter(t => task.tags.includes(t.id)),
+    [tags, task.tags]
+  );
   const isSelected = selectedTaskIds.has(task.id);
 
-  const handleToggle = (e: React.MouseEvent) => {
+  const handleToggle = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     toggleTask(task.id);
-  };
+  }, [task.id]);
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = useCallback((e: React.MouseEvent) => {
     const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
     const isMetaKey = isMac ? e.metaKey : e.ctrlKey;
     const isShiftKey = e.shiftKey;
@@ -43,38 +48,9 @@ export function TaskRow({ task, allTaskIds }: TaskRowProps) {
         selectTask(task.id);
       }
     }
-  };
+  }, [task.id, allTaskIds, isSelected, selectedTaskIds.size, toggleTaskSelection, selectTaskRange, selectTask, openTaskDetail]);
 
-  const formatDeadline = (timestamp: number) => {
-    const date = new Date(timestamp);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      return 'Tomorrow';
-    } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
-  };
-
-  const formatScheduledDate = (timestamp: number) => {
-    const date = new Date(timestamp);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      return 'Tomorrow';
-    } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
-  };
-
+  // Calculate when display (not memoized due to Date.now() being impure)
   const getWhenDisplay = () => {
     // Don't show when info on Today, Upcoming, or Someday screens - it's redundant
     if (currentView === 'today' || currentView === 'upcoming' || currentView === 'someday') {
@@ -83,14 +59,15 @@ export function TaskRow({ task, allTaskIds }: TaskRowProps) {
 
     // Priority: scheduledDate > deadline > when
     if (task.scheduledDate) {
-      return { icon: '📅', text: formatScheduledDate(task.scheduledDate) };
+      return { icon: '📅', text: formatDate(task.scheduledDate) };
     }
     if (task.deadline) {
-      // eslint-disable-next-line react-hooks/purity
-      const isOverdue = task.deadline < Date.now();
+      // eslint-disable-next-line react-hooks/purity -- Need current time to check if deadline is overdue
+      const now = Date.now();
+      const isOverdue = task.deadline < now;
       return {
         icon: isOverdue ? '⚠️' : '📅',
-        text: formatDeadline(task.deadline),
+        text: formatDate(task.deadline),
         isOverdue
       };
     }
@@ -188,3 +165,6 @@ export function TaskRow({ task, allTaskIds }: TaskRowProps) {
     </div>
   );
 }
+
+// Memoize TaskRow to prevent unnecessary re-renders
+export const TaskRow = memo(TaskRowComponent);

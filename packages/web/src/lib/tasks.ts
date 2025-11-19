@@ -1,13 +1,22 @@
-import { generateId, now, type Task, type TaskInput, type WhenValue } from '@tasky/shared';
+import {
+  generateId,
+  now,
+  type Task,
+  type TaskInput,
+  type WhenValue,
+  INPUT_LIMITS,
+  sanitizeInput
+} from '@tasky/shared';
 import {
   tasksMap,
-  inboxSortOrder,
   todaySortOrder,
   anytimeSortOrder,
   somedaySortOrder,
   listTaskSortOrders
 } from './yjs';
 import { undoManager } from './undo';
+import { addToSortOrder, removeFromSortOrder } from './sortOrderUtils';
+import { handleOperationError } from './errorHandler';
 import {
   CreateTaskCommand,
   UpdateTaskCommand,
@@ -29,10 +38,14 @@ function _createTaskInternal(input: Partial<TaskInput>): Task {
   const id = generateId();
   const timestamp = now();
 
+  // Sanitize and validate inputs
+  const title = sanitizeInput(input.title || '').slice(0, INPUT_LIMITS.TASK_TITLE);
+  const notes = sanitizeInput(input.notes || '').slice(0, INPUT_LIMITS.TASK_NOTES);
+
   const task: Task = {
     id,
-    title: input.title || '',
-    notes: input.notes || '',
+    title,
+    notes,
     when: input.when || 'anytime',  // Default to anytime (not inbox - inbox is dynamic)
     scheduledDate: input.scheduledDate ?? null,
     deadline: input.deadline ?? null,
@@ -64,13 +77,17 @@ export function createTask(input: Partial<TaskInput>): Task {
     return _createTaskInternal(input);
   }
 
+  // Sanitize and validate inputs
+  const title = sanitizeInput(input.title || '').slice(0, INPUT_LIMITS.TASK_TITLE);
+  const notes = sanitizeInput(input.notes || '').slice(0, INPUT_LIMITS.TASK_NOTES);
+
   // Create task object but don't add to map yet - command will do that
   const id = generateId();
   const timestamp = now();
   const task: Task = {
     id,
-    title: input.title || '',
-    notes: input.notes || '',
+    title,
+    notes,
     when: input.when || 'anytime',
     scheduledDate: input.scheduledDate ?? null,
     deadline: input.deadline ?? null,
@@ -104,16 +121,28 @@ export function getTask(id: string): Task | undefined {
 function _updateTaskInternal(id: string, updates: Partial<Task>): void {
   const task = tasksMap.get(id);
   if (!task) {
-    console.warn(`[updateTask] Task not found: ${id}`);
+    handleOperationError('updateTask', new Error(`Task not found: ${id}`), {
+      entityType: 'task',
+      entityId: id,
+    });
     return;
   }
 
   const oldWhen = task.when;
   const oldListId = task.listId;
 
+  // Sanitize and validate string inputs if provided
+  const sanitizedUpdates = { ...updates };
+  if (updates.title !== undefined) {
+    sanitizedUpdates.title = sanitizeInput(updates.title).slice(0, INPUT_LIMITS.TASK_TITLE);
+  }
+  if (updates.notes !== undefined) {
+    sanitizedUpdates.notes = sanitizeInput(updates.notes).slice(0, INPUT_LIMITS.TASK_NOTES);
+  }
+
   const updatedTask: Task = {
     ...task,
-    ...updates,
+    ...sanitizedUpdates,
     updatedAt: now()
   };
 
@@ -135,7 +164,10 @@ function _updateTaskInternal(id: string, updates: Partial<Task>): void {
 export function updateTask(id: string, updates: Partial<Task>): void {
   const task = tasksMap.get(id);
   if (!task) {
-    console.warn(`[updateTask] Task not found: ${id}`);
+    handleOperationError('updateTask', new Error(`Task not found: ${id}`), {
+      entityType: 'task',
+      entityId: id,
+    });
     return;
   }
 
@@ -144,8 +176,17 @@ export function updateTask(id: string, updates: Partial<Task>): void {
     return;
   }
 
+  // Sanitize and validate string inputs if provided
+  const sanitizedUpdates = { ...updates };
+  if (updates.title !== undefined) {
+    sanitizedUpdates.title = sanitizeInput(updates.title).slice(0, INPUT_LIMITS.TASK_TITLE);
+  }
+  if (updates.notes !== undefined) {
+    sanitizedUpdates.notes = sanitizeInput(updates.notes).slice(0, INPUT_LIMITS.TASK_NOTES);
+  }
+
   const oldTask = { ...task };
-  const command = new UpdateTaskCommand(oldTask, updates);
+  const command = new UpdateTaskCommand(oldTask, sanitizedUpdates);
   undoManager.execute(command);
 }
 
@@ -290,61 +331,7 @@ export function cancelTask(id: string): void {
 // ============================================================================
 // Sort Order Management
 // ============================================================================
-
-/**
- * Add task ID to appropriate sort order array
- */
-function addToSortOrder(task: Task): void {
-  const id = task.id;
-
-  // Priority: list > when
-  if (task.listId) {
-    const sortOrder = listTaskSortOrders.get(task.listId) || [];
-    listTaskSortOrders.set(task.listId, [...sortOrder, id]);
-  } else {
-    // Add to appropriate when-based sort order
-    switch (task.when) {
-      case 'today':
-      case 'evening':
-        todaySortOrder.push([id]);
-        break;
-      case 'anytime':
-        // All anytime tasks without listId go to anytimeSortOrder
-        // The distinction between inbox and anytime views is handled by filter functions
-        anytimeSortOrder.push([id]);
-        break;
-      case 'someday':
-        somedaySortOrder.push([id]);
-        break;
-    }
-  }
-}
-
-/**
- * Remove task ID from its current sort order array
- */
-function removeFromSortOrder(task: Task): void {
-  const id = task.id;
-
-  // Try list sort order
-  if (task.listId) {
-    const sortOrder = listTaskSortOrders.get(task.listId) || [];
-    const filtered = sortOrder.filter(taskId => taskId !== id);
-    listTaskSortOrders.set(task.listId, filtered);
-    return;
-  }
-
-  // Remove from all when-based sort orders
-  const arrays = [inboxSortOrder, todaySortOrder, anytimeSortOrder, somedaySortOrder];
-
-  for (const arr of arrays) {
-    const index = arr.toArray().indexOf(id);
-    if (index !== -1) {
-      arr.delete(index, 1);
-      return;
-    }
-  }
-}
+// Sort order functions moved to sortOrderUtils.ts for sharing with undo commands
 
 /**
  * Internal implementation - reorder task without undo tracking

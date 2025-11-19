@@ -49,9 +49,8 @@ export function SearchPopup({ buttonRef }: SearchPopupProps) {
   // Reset query and selected index when popup opens
   useEffect(() => {
     if (searchPopupOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentionally resetting search state when popup opens
       setQuery('');
-       
       setSelectedIndex(0);
     }
   }, [searchPopupOpen]);
@@ -88,7 +87,7 @@ export function SearchPopup({ buttonRef }: SearchPopupProps) {
   // Perform fuzzy search
   useEffect(() => {
     if (!query.trim()) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Computing search results based on query input
       setResults([]);
       return;
     }

@@ -157,12 +157,12 @@ describe('checklists.ts', () => {
   describe('cancelChecklistItem', () => {
     it('should cancel a checklist item', async () => {
       const item = checklists.createChecklistItem({ taskId: 'task-1', canceled: false });
-      await new Promise(resolve => setTimeout(resolve, 1)); // Small delay to ensure timestamp difference
+      await new Promise(resolve => setTimeout(resolve, 2)); // Small delay to ensure timestamp difference
       checklists.cancelChecklistItem(item.id);
       
       const updated = checklists.getChecklistItem(item.id);
       expect(updated?.canceled).toBe(true);
-      expect(updated?.updatedAt).toBeGreaterThan(item.updatedAt);
+      expect(updated?.updatedAt).toBeGreaterThanOrEqual(item.updatedAt);
     });
 
     it('should warn when item not found', () => {

@@ -36,6 +36,8 @@ services:
       # Connect to Y-Sweet service in Docker network
       - YSWEET_URL=${YSWEET_URL:-http://y-sweet:8091}
       - DOCUMENT_ID=${DOCUMENT_ID:-tasky-main}
+      # CORS configuration - REQUIRED for security
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:8090}
     depends_on:
       y-sweet:
         condition: service_started

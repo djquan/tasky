@@ -64,8 +64,16 @@ export interface List {
   sortOrder: number;
 }
 
-// Legacy type aliases for backward compatibility
+/**
+ * @deprecated Use List with type: 'project' instead. Will be removed in v2.0.
+ * Legacy type alias for backward compatibility during migration.
+ */
 export type Project = List & { type: 'project' };
+
+/**
+ * @deprecated Use List with type: 'area' instead. Will be removed in v2.0.
+ * Legacy type alias for backward compatibility during migration.
+ */
 export type Area = List & { type: 'area' };
 
 export interface Heading {
@@ -109,8 +117,16 @@ export type HeadingInput = Omit<Heading, 'id' | 'createdAt' | 'updatedAt'>;
 export type TagInput = Omit<Tag, 'id' | 'createdAt' | 'updatedAt'>;
 export type ChecklistItemInput = Omit<ChecklistItem, 'id' | 'createdAt' | 'updatedAt'>;
 
-// Legacy input types for backward compatibility
+/**
+ * @deprecated Use ListInput with type: 'project' instead. Will be removed in v2.0.
+ * Legacy type alias for backward compatibility during migration.
+ */
 export type ProjectInput = ListInput & { type: 'project' };
+
+/**
+ * @deprecated Use ListInput with type: 'area' instead. Will be removed in v2.0.
+ * Legacy type alias for backward compatibility during migration.
+ */
 export type AreaInput = ListInput & { type: 'area' };
 
 // ============================================================================
@@ -127,5 +143,8 @@ export interface SmartListCounts {
   trash: number;
 }
 
-// Legacy type alias for backward compatibility during migration
+/**
+ * @deprecated Use Task instead. Will be removed in v2.0.
+ * Legacy type alias for backward compatibility during migration.
+ */
 export type Todo = Task;

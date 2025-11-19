@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { Task } from '@tasky/shared';
 import { TaskRow } from './TaskRow';
 
@@ -7,6 +8,9 @@ interface TaskListProps {
 }
 
 export function TaskList({ tasks, emptyMessage = 'No tasks' }: TaskListProps) {
+  // Memoize task IDs array to prevent TaskRow props from changing unnecessarily
+  const allTaskIds = useMemo(() => tasks.map(t => t.id), [tasks]);
+
   if (tasks.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
@@ -26,7 +30,7 @@ export function TaskList({ tasks, emptyMessage = 'No tasks' }: TaskListProps) {
   return (
     <div className="space-y-0">
       {tasks.map((task) => (
-        <TaskRow key={task.id} task={task} allTaskIds={tasks.map(t => t.id)} />
+        <TaskRow key={task.id} task={task} allTaskIds={allTaskIds} />
       ))}
     </div>
   );

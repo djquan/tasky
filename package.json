@@ -12,7 +12,8 @@
     "test:coverage": "pnpm -r test:coverage",
     "test:ui": "pnpm --filter web test:ui",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "prepare": "husky"
   },
   "keywords": [
     "todo",
@@ -25,6 +26,11 @@
     "pnpm": ">=10"
   },
   "packageManager": "pnpm@10.20.0",
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix"
+    ]
+  },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@types/node": "^24.10.0",
@@ -34,6 +40,8 @@
     "eslint": "^9.39.1",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6",
     "vitest": "^4.0.8",
     "ws": "^8.18.3",
     "y-websocket": "^2.1.0",

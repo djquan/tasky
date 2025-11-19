@@ -11,6 +11,9 @@ import { DocumentManager } from '@y-sweet/sdk';
 const PORT = process.env.PORT || 8092;
 const YSWEET_URL = process.env.YSWEET_URL || 'http://localhost:8091';
 const DOCUMENT_ID = process.env.DOCUMENT_ID || 'tasky-main';
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+  : ['http://localhost:8090', 'http://localhost:4173', 'http://localhost:8080'];
 
 // Initialize DocumentManager with HTTP URL
 // The SDK accepts http:// URLs and handles the connection internally
@@ -19,8 +22,11 @@ const manager = new DocumentManager(YSWEET_URL);
 console.log('[Token Server] Initializing with Y-Sweet URL:', YSWEET_URL);
 
 const server = http.createServer(async (req, res) => {
-  // Enable CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // Enable CORS for allowed origins only
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -68,4 +74,5 @@ server.listen(PORT, () => {
   console.log(`Y-Sweet token server running on http://localhost:${PORT}`);
   console.log(`Document ID: ${DOCUMENT_ID}`);
   console.log(`Y-Sweet internal URL: ${YSWEET_URL}`);
+  console.log(`Allowed origins: ${ALLOWED_ORIGINS.join(', ')}`);
 });

@@ -1,4 +1,12 @@
-import { generateId, now, type List, type ListInput, type ListType } from '@tasky/shared';
+import {
+  generateId,
+  now,
+  type List,
+  type ListInput,
+  type ListType,
+  INPUT_LIMITS,
+  sanitizeInput
+} from '@tasky/shared';
 import { listsMap, listsSortOrder, listTaskSortOrders, getAllLists } from './yjs';
 import { undoManager } from './undo';
 import {
@@ -48,11 +56,15 @@ function _createListInternal(input: Partial<ListInput>): { list: List; insertInd
   const id = generateId();
   const timestamp = now();
 
+  // Sanitize and validate inputs
+  const title = sanitizeInput(input.title || '').slice(0, INPUT_LIMITS.LIST_TITLE);
+  const notes = sanitizeInput(input.notes || '').slice(0, INPUT_LIMITS.LIST_NOTES);
+
   const list: List = {
     id,
     type: input.type || 'project',
-    title: input.title || '',
-    notes: input.notes || '',
+    title,
+    notes,
     when: input.when || 'anytime',
     scheduledDate: input.scheduledDate ?? null,
     deadline: input.deadline ?? null,
@@ -95,14 +107,18 @@ export function createList(input: Partial<ListInput>): List {
     return _createListInternal(input).list;
   }
 
+  // Sanitize and validate inputs
+  const title = sanitizeInput(input.title || '').slice(0, INPUT_LIMITS.LIST_TITLE);
+  const notes = sanitizeInput(input.notes || '').slice(0, INPUT_LIMITS.LIST_NOTES);
+
   // Create list object but don't add to map yet - command will do that
   const id = generateId();
   const timestamp = now();
   const list: List = {
     id,
     type: input.type || 'project',
-    title: input.title || '',
-    notes: input.notes || '',
+    title,
+    notes,
     when: input.when || 'anytime',
     scheduledDate: input.scheduledDate ?? null,
     deadline: input.deadline ?? null,
@@ -139,9 +155,18 @@ function _updateListInternal(id: string, updates: Partial<List>): void {
     return;
   }
 
+  // Sanitize and validate string inputs if provided
+  const sanitizedUpdates = { ...updates };
+  if (updates.title !== undefined) {
+    sanitizedUpdates.title = sanitizeInput(updates.title).slice(0, INPUT_LIMITS.LIST_TITLE);
+  }
+  if (updates.notes !== undefined) {
+    sanitizedUpdates.notes = sanitizeInput(updates.notes).slice(0, INPUT_LIMITS.LIST_NOTES);
+  }
+
   const updated: List = {
     ...list,
-    ...updates,
+    ...sanitizedUpdates,
     updatedAt: now()
   };
 
@@ -168,8 +193,17 @@ export function updateList(id: string, updates: Partial<List>): void {
     return;
   }
 
+  // Sanitize and validate string inputs if provided
+  const sanitizedUpdates = { ...updates };
+  if (updates.title !== undefined) {
+    sanitizedUpdates.title = sanitizeInput(updates.title).slice(0, INPUT_LIMITS.LIST_TITLE);
+  }
+  if (updates.notes !== undefined) {
+    sanitizedUpdates.notes = sanitizeInput(updates.notes).slice(0, INPUT_LIMITS.LIST_NOTES);
+  }
+
   const oldList = { ...list };
-  const command = new UpdateListCommand(oldList, updates);
+  const command = new UpdateListCommand(oldList, sanitizedUpdates);
   undoManager.execute(command);
 }
 

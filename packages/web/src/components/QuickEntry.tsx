@@ -4,6 +4,7 @@ import { createTask } from '../lib/tasks';
 import { WhenPicker } from './pickers/WhenPicker';
 import { ProjectAreaPicker } from './pickers/ProjectAreaPicker';
 import { useProjects, useAreas } from '../hooks/useEntities';
+import { formatDate } from '../lib/dateUtils';
 import type { WhenValue } from '@tasky/shared';
 
 export function QuickEntry() {
@@ -32,25 +33,10 @@ export function QuickEntry() {
     };
   }, [listId, projects, areas]);
 
-  const formatScheduledDate = (timestamp: number) => {
-    const date = new Date(timestamp);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      return 'Tomorrow';
-    } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
-  };
-
   const getWhenDisplay = () => {
     // Priority: scheduledDate > deadline > when
     if (scheduledDate) {
-      return { icon: '📅', text: formatScheduledDate(scheduledDate) };
+      return { icon: '📅', text: formatDate(scheduledDate) };
     }
     if (when === 'today') {
       return { icon: '⭐', text: 'Today' };
@@ -90,24 +76,19 @@ export function QuickEntry() {
     if (quickEntryOpen) {
       // Prefill date if on Today view
       if (currentView === 'today') {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentionally prefilling form state when popup opens
         setWhen('today');
-         
         setScheduledDate(null);
       } else {
         // Reset to defaults if not on Today view
-         
         setWhen('anytime');
-         
         setScheduledDate(null);
       }
 
       // Prefill list if on Project or Area view
       if (currentView === 'project' || currentView === 'area') {
-         
         setListId(contextId);
       } else {
-         
         setListId(null);
       }
 

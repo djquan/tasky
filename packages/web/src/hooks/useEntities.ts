@@ -53,13 +53,12 @@ export function useTask(id: string | null) {
 
   useEffect(() => {
     if (!id) {
-      // Reset state when id becomes null
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setTask(null);
-      setIsLoading(false);
+      // Reset state when id becomes null - done via separate effect
       return;
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Synchronizing with external Yjs state
+    setIsLoading(true);
     waitForSync().then(() => {
       setTask(tasksMap.get(id) || null);
       setIsLoading(false);
@@ -74,6 +73,15 @@ export function useTask(id: string | null) {
     return () => {
       tasksMap.unobserve(observer);
     };
+  }, [id]);
+
+  // Reset state when id becomes null
+  useEffect(() => {
+    if (!id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Resetting state when entity id becomes null
+      setTask(null);
+      setIsLoading(false);
+    }
   }, [id]);
 
   return { task, isLoading };
@@ -117,13 +125,12 @@ export function useList(id: string | null) {
 
   useEffect(() => {
     if (!id) {
-      // Reset state when id becomes null
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setList(null);
-      setIsLoading(false);
+      // Reset state when id becomes null - done via separate effect
       return;
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Synchronizing with external Yjs state
+    setIsLoading(true);
     waitForSync().then(() => {
       setList(listsMap.get(id) || null);
       setIsLoading(false);
@@ -138,6 +145,15 @@ export function useList(id: string | null) {
     return () => {
       listsMap.unobserve(observer);
     };
+  }, [id]);
+
+  // Reset state when id becomes null
+  useEffect(() => {
+    if (!id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Resetting state when entity id becomes null
+      setList(null);
+      setIsLoading(false);
+    }
   }, [id]);
 
   return { list, isLoading };
@@ -241,10 +257,7 @@ export function useHeadings(listId: string | null) {
 
   useEffect(() => {
     if (!listId) {
-      // Reset state when listId becomes null
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setHeadings([]);
-      setIsLoading(false);
+      // Reset state when listId becomes null - done via separate effect
       return;
     }
 
@@ -256,6 +269,8 @@ export function useHeadings(listId: string | null) {
       setHeadings(filtered);
     };
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Synchronizing with external Yjs state
+    setIsLoading(true);
     waitForSync().then(() => {
       updateHeadings();
       setIsLoading(false);
@@ -266,6 +281,15 @@ export function useHeadings(listId: string | null) {
     return () => {
       headingsMap.unobserve(updateHeadings);
     };
+  }, [listId]);
+
+  // Reset state when listId becomes null
+  useEffect(() => {
+    if (!listId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Resetting state when list id becomes null
+      setHeadings([]);
+      setIsLoading(false);
+    }
   }, [listId]);
 
   return { headings, isLoading };
@@ -280,10 +304,7 @@ export function useChecklistItems(taskId: string | null) {
 
   useEffect(() => {
     if (!taskId) {
-      // Reset state when taskId becomes null
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setItems([]);
-      setIsLoading(false);
+      // Reset state when taskId becomes null - done via separate effect
       return;
     }
 
@@ -295,6 +316,8 @@ export function useChecklistItems(taskId: string | null) {
       setItems(filtered);
     };
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Synchronizing with external Yjs state
+    setIsLoading(true);
     waitForSync().then(() => {
       updateItems();
       setIsLoading(false);
@@ -305,6 +328,15 @@ export function useChecklistItems(taskId: string | null) {
     return () => {
       checklistItemsMap.unobserve(updateItems);
     };
+  }, [taskId]);
+
+  // Reset state when taskId becomes null
+  useEffect(() => {
+    if (!taskId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Resetting state when task id becomes null
+      setItems([]);
+      setIsLoading(false);
+    }
   }, [taskId]);
 
   return { items, isLoading };
