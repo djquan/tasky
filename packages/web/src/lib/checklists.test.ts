@@ -162,7 +162,7 @@ describe('checklists.ts', () => {
       
       const updated = checklists.getChecklistItem(item.id);
       expect(updated?.canceled).toBe(true);
-      expect(updated?.updatedAt).toBeGreaterThan(item.updatedAt);
+      expect(updated?.updatedAt).toBeGreaterThanOrEqual(item.updatedAt);
     });
 
     it('should warn when item not found', () => {

@@ -56,7 +56,7 @@ export function createMockYArray<T = string>(): Array<T> & {
 /**
  * Resets a mock Y.Array to empty state
  */
-export function resetMockYArray(array: ReturnType<typeof createMockYArray>): void {
+export function resetMockYArray<T = unknown>(array: ReturnType<typeof createMockYArray<T>>): void {
   array.length = 0;
 }
 
