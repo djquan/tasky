@@ -14,3 +14,8 @@ export const MS_PER_MINUTE = 60 * 1000;
 // Layout Constants
 export const SIDEBAR_WIDTH = 256; // 16rem in pixels
 export const MAX_MODAL_WIDTH = 640; // 40rem in pixels
+
+// Sync Constants
+export const MAX_RECONNECT_ATTEMPTS = 10;
+export const INITIAL_RECONNECT_DELAY = 1000; // 1 second
+export const MAX_RECONNECT_DELAY = 30000; // 30 seconds

@@ -8,6 +8,7 @@
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
 import { getSyncSettings } from './settings';
+import { MAX_RECONNECT_ATTEMPTS, INITIAL_RECONNECT_DELAY, MAX_RECONNECT_DELAY } from '../constants';
 
 export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
 
@@ -30,8 +31,8 @@ class YSweetSyncProvider implements SyncProvider {
   private ydoc: Y.Doc;
   private baseUrl: string;
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 10;
-  private reconnectDelay = 1000; // Start with 1 second
+  private maxReconnectAttempts = MAX_RECONNECT_ATTEMPTS;
+  private reconnectDelay = INITIAL_RECONNECT_DELAY;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private connectionStateListeners: Set<(state: ConnectionState) => void> = new Set();
 
@@ -151,7 +152,7 @@ class YSweetSyncProvider implements SyncProvider {
           if (event.status === 'connected') {
             this.setConnectionState('connected');
             this.reconnectAttempts = 0;
-            this.reconnectDelay = 1000; // Reset delay on successful connection
+            this.reconnectDelay = INITIAL_RECONNECT_DELAY; // Reset delay on successful connection
           } else if (event.status === 'connecting') {
             this.setConnectionState('connecting');
           } else if (event.status === 'disconnected') {
@@ -204,7 +205,7 @@ class YSweetSyncProvider implements SyncProvider {
     }
 
     this.reconnectAttempts++;
-    const delay = Math.min(this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1), 30000);
+    const delay = Math.min(this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1), MAX_RECONNECT_DELAY);
 
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
