@@ -1,20 +1,55 @@
-# Tasky Deployment Guide for Coolify
+# Tasky Deployment Guide
+
+This guide covers deploying Tasky with Docker Compose, with specific instructions for Coolify and general VPS deployments.
 
 ## Prerequisites
 
-1. Coolify installed and running
-2. Tailscale configured on your server
-3. GitHub repository connected to Coolify
+- Docker and Docker Compose installed
+- (Optional) Coolify for automated deployments
+- (Optional) Tailscale for private network access
+- GitHub repository connected (for Coolify)
+
+## Critical: CORS Configuration
+
+**NEW in quality-2025-11-18**: The token server now enforces CORS restrictions for security.
+
+### Required Environment Variable
+
+You **MUST** set `ALLOWED_ORIGINS` to include your frontend domain(s):
+
+```bash
+# For Coolify/Tailscale (internal network)
+ALLOWED_ORIGINS=http://100.x.x.x:8090,http://your-tailscale-ip:8090
+
+# For public deployment
+ALLOWED_ORIGINS=https://tasky.yourdomain.com,https://www.tasky.yourdomain.com
+
+# For development + production
+ALLOWED_ORIGINS=http://localhost:8090,https://tasky.yourdomain.com
+```
+
+**Important**: Origins must match exactly (include protocol, no trailing slash).
 
 ## Environment Variables
 
-Set these in Coolify's environment variables section:
+### Required Variables
 
-```
+Set these in Coolify's environment variables section or your `.env` file:
+
+```bash
+# CRITICAL: Allowed frontend origins for CORS
+ALLOWED_ORIGINS=http://your-frontend-url:port
+
+# Session security key
 SESSION_BACKEND_KEY=<generate-with-openssl-rand-base64-32>
-YSWEET_CLIENT_URL=ws://your-tailscale-ip:8091
+
+# Optional: Document ID
 DOCUMENT_ID=tasky-main
 ```
+
+### Legacy Variables (No longer needed)
+
+~~`YSWEET_CLIENT_URL`~~ - No longer required, handled internally
 
 ### Generate Secure Key
 
@@ -51,7 +86,11 @@ YSWEET_CLIENT_URL=ws://100.x.x.x:8091
 
 ### 3. Set Environment Variables
 
-Add all three environment variables listed above in Coolify's UI.
+**CRITICAL**: Add these environment variables in Coolify's UI:
+
+1. `ALLOWED_ORIGINS` - Your frontend URL (e.g., `http://100.x.x.x:8090`)
+2. `SESSION_BACKEND_KEY` - Generated secure key
+3. `DOCUMENT_ID` - Optional, defaults to `tasky-main`
 
 ### 4. Deploy
 
@@ -94,10 +133,32 @@ After deployment, Coolify will show you the ports. Access via your Tailscale IP:
 
 ### Sync not working
 
-- Verify YSWEET_CLIENT_URL matches your Tailscale IP
-- Check token server logs
-- Ensure Y-Sweet service is running
+**First, check for CORS errors** (most common issue):
+
+1. Open browser DevTools console (F12)
+2. Look for CORS-related errors like:
+   ```
+   Access to fetch at 'http://...' has been blocked by CORS policy
+   ```
+
+3. If you see CORS errors:
+   - Verify `ALLOWED_ORIGINS` is set in environment variables
+   - Ensure your frontend URL matches exactly (check protocol: http vs https)
+   - Include port number if not standard (80/443)
+   - Restart services after changing environment variables:
+     ```bash
+     docker-compose restart token-server
+     ```
+
+**Other sync issues**:
+- Check token server logs: `docker-compose logs token-server`
+- Ensure Y-Sweet service is running: `docker-compose ps`
 - Verify SESSION_BACKEND_KEY is set
+- Test token endpoint manually:
+  ```bash
+  curl -H "Origin: http://your-frontend-url" http://your-server:8093/token
+  # Should return: {"clientToken":"..."}
+  ```
 
 ### Port conflicts
 
@@ -131,10 +192,62 @@ docker run --rm -v tasky_y-sweet-data:/data \
 ## Production Checklist
 
 - [ ] Generated secure SESSION_BACKEND_KEY
+- [ ] **Set ALLOWED_ORIGINS with your frontend URL(s)**
 - [ ] Set all environment variables in Coolify
-- [ ] Verified Tailscale IP
+- [ ] Verified Tailscale IP or domain name
 - [ ] Tested web app loads correctly
+- [ ] **Verified no CORS errors in browser console**
 - [ ] Tested sync between devices
 - [ ] Verified data persists after restart
 - [ ] Set up backups (optional but recommended)
+
+## Quick Deployment Commands
+
+### For Coolify (with Tailscale)
+
+```bash
+# After getting your Coolify-assigned port (check Coolify UI)
+# Set environment variable:
+ALLOWED_ORIGINS=http://100.x.x.x:PORT
+
+# Where PORT is the Coolify-assigned port for the web service
+```
+
+### For VPS (Docker Compose)
+
+```bash
+# 1. Clone repo
+git clone https://github.com/djquan/tasky.git
+cd tasky
+git checkout quality-2025-11-18
+
+# 2. Create .env file
+cat > .env <<EOF
+ALLOWED_ORIGINS=http://your-server-ip:8090
+SESSION_BACKEND_KEY=$(openssl rand -base64 32)
+DOCUMENT_ID=tasky-main
+EOF
+
+# 3. Start services
+docker-compose up -d
+
+# 4. Check logs
+docker-compose logs -f
+
+# 5. Access at http://your-server-ip:8090
+```
+
+### Testing CORS Configuration
+
+```bash
+# Test that CORS is configured correctly
+curl -H "Origin: http://your-frontend-url" \
+     -H "Access-Control-Request-Method: GET" \
+     -H "Access-Control-Request-Headers: Content-Type" \
+     -X OPTIONS \
+     http://your-server:8093/token
+
+# Should see:
+# Access-Control-Allow-Origin: http://your-frontend-url
+```
 
