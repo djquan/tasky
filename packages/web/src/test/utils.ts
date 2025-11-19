@@ -14,8 +14,8 @@ export function createMockYMap<T>(): Map<string, T> & {
   const map = new Map<string, T>();
 
   // Add Yjs observer methods (no-op for tests)
-  (map as any).observe = () => {};
-  (map as any).unobserve = () => {};
+  (map as Map<string, T> & Record<string, unknown>).observe = () => {};
+  (map as Map<string, T> & Record<string, unknown>).unobserve = () => {};
 
   return map;
 }
@@ -56,7 +56,7 @@ export function createMockYArray<T = string>(): Array<T> & {
 /**
  * Resets a mock Y.Array to empty state
  */
-export function resetMockYArray(array: any): void {
+export function resetMockYArray(array: ReturnType<typeof createMockYArray>): void {
   array.length = 0;
 }
 
