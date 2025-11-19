@@ -50,7 +50,8 @@ function TaskRowComponent({ task, allTaskIds }: TaskRowProps) {
     }
   }, [task.id, allTaskIds, isSelected, selectedTaskIds.size, toggleTaskSelection, selectTaskRange, selectTask, openTaskDetail]);
 
-  const whenDisplay = useMemo(() => {
+  // Calculate when display (not memoized due to Date.now() being impure)
+  const getWhenDisplay = () => {
     // Don't show when info on Today, Upcoming, or Someday screens - it's redundant
     if (currentView === 'today' || currentView === 'upcoming' || currentView === 'someday') {
       return null;
@@ -61,6 +62,7 @@ function TaskRowComponent({ task, allTaskIds }: TaskRowProps) {
       return { icon: '📅', text: formatDate(task.scheduledDate) };
     }
     if (task.deadline) {
+      // eslint-disable-next-line react-hooks/purity -- Need current time to check if deadline is overdue
       const now = Date.now();
       const isOverdue = task.deadline < now;
       return {
@@ -79,7 +81,9 @@ function TaskRowComponent({ task, allTaskIds }: TaskRowProps) {
       return { icon: '🌙', text: 'Someday' };
     }
     return null;
-  }, [currentView, task.scheduledDate, task.deadline, task.when]);
+  };
+
+  const whenDisplay = getWhenDisplay();
 
   return (
     <div

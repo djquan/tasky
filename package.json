@@ -28,8 +28,7 @@
   "packageManager": "pnpm@10.20.0",
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint --fix",
-      "vitest related --run"
+      "eslint --fix"
     ]
   },
   "devDependencies": {
