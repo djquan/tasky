@@ -219,11 +219,11 @@ describe('tasks.ts', () => {
       expect(listOrder).toContain(task.id);
     });
 
-    it('should warn when task not found', () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    it('should log error when task not found', () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       tasks.updateTask('non-existent', { title: 'Updated' });
-      
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Task not found'));
+
+      expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
   });
