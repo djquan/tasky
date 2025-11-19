@@ -1,5 +1,17 @@
-// Test setup file for vitest
-// Mocks global APIs not available in happy-dom test environment
+/**
+ * Test Setup
+ *
+ * Global test configuration for vitest and React Testing Library.
+ * Mocks browser APIs not available in happy-dom test environment.
+ */
+
+import { cleanup } from '@testing-library/react';
+import { afterEach } from 'vitest';
+
+// Cleanup after each test to prevent memory leaks
+afterEach(() => {
+  cleanup();
+});
 
 // Mock IndexedDB for y-indexeddb
 // The yjs.ts module initializes IndexeddbPersistence at module level,
@@ -21,3 +33,27 @@ globalThis.indexedDB = {
   }),
   deleteDatabase: () => ({ onsuccess: null, onerror: null }),
 } as unknown as IDBFactory;
+
+// Mock localStorage if not available
+if (typeof globalThis.localStorage === 'undefined') {
+  const localStorageMock = (() => {
+    let store: Record<string, string> = {};
+
+    return {
+      getItem: (key: string) => store[key] || null,
+      setItem: (key: string, value: string) => {
+        store[key] = value.toString();
+      },
+      removeItem: (key: string) => {
+        delete store[key];
+      },
+      clear: () => {
+        store = {};
+      },
+    };
+  })();
+
+  Object.defineProperty(globalThis, 'localStorage', {
+    value: localStorageMock,
+  });
+}
