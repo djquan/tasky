@@ -104,22 +104,33 @@ All services should show as "Up".
 Services will be available at:
 
 - **Web App**: `http://your-server-ip:8090`
-- **Sync Server (internal)**: `http://localhost:8093`
+- **Sync Server** (nginx proxy): `http://your-server-ip:8093`
 
-The sync server runs behind nginx and is not directly exposed.
+### Architecture
 
-## Configure Tasky App
+- `web` (port 8090): React PWA frontend
+- `nginx` (port 8093): Reverse proxy that routes:
+  - `/token` → token-server (generates Y-Sweet client tokens)
+  - `/` → y-sweet (WebSocket sync server)
+- `token-server` (internal): Token generation
+- `y-sweet` (internal): CRDT sync server
 
-Sync is **disabled by default**. The app works perfectly as a local-first PWA without sync.
+## Configure Sync (Optional)
+
+Sync is **disabled by default**. The app works perfectly as a local-first PWA without any configuration.
 
 To enable multi-device sync:
 
-1. Open the web app in your browser (`http://your-server-ip:8090`)
+1. Open the web app in your browser: `http://your-server-ip:8090`
 2. Click the settings icon (sliders) in the sidebar
-3. Toggle "Enable sync" ON
-4. The sync URL is automatically configured (internal nginx routes to sync server)
+3. Toggle "Enable sync" to ON
+4. **Enter the sync URL**: `http://your-server-ip:8093`
+   - This points to the nginx proxy that routes to both token-server and y-sweet
+   - The app will automatically append `/token` when fetching tokens
 5. Click Save
 6. Connection status should show "Connected"
+
+**Important**: The sync URL must point to port 8093 (nginx), not 8090 (web app)
 
 ## Troubleshooting
 
@@ -249,18 +260,22 @@ docker run --rm -v tasky_y-sweet-data:/data \
 
 For production use with a domain name and SSL:
 
-### 1. Point Domain to Server
+### 1. Point Domains to Server
 
-Add A record in your DNS:
+Add A records in your DNS:
 ```
-A    tasky.yourdomain.com    →  your-server-ip
+A    tasky.yourdomain.com     →  your-server-ip  (web app)
+A    sync.tasky.yourdomain.com →  your-server-ip  (sync server)
 ```
 
 ### 2. Update Environment
 
 ```bash
-# Update ALLOWED_ORIGINS for HTTPS
+# Update ALLOWED_ORIGINS for HTTPS (must match web app URL)
 ALLOWED_ORIGINS=https://tasky.yourdomain.com
+
+# Restart to apply
+docker-compose restart token-server
 ```
 
 ### 3. Setup Reverse Proxy (Caddy - Recommended)
@@ -281,8 +296,14 @@ sudo nano /etc/caddy/Caddyfile
 
 Add to Caddyfile:
 ```
+# Web app
 tasky.yourdomain.com {
     reverse_proxy localhost:8090
+}
+
+# Sync server
+sync.tasky.yourdomain.com {
+    reverse_proxy localhost:8093
 }
 ```
 
@@ -290,6 +311,10 @@ tasky.yourdomain.com {
 # Restart Caddy (automatic HTTPS!)
 sudo systemctl restart caddy
 ```
+
+### 4. Configure App
+
+In Tasky settings, set sync URL to: `https://sync.tasky.yourdomain.com`
 
 ### Alternative: nginx with Let's Encrypt
 
@@ -303,6 +328,7 @@ sudo nano /etc/nginx/sites-available/tasky
 
 Add:
 ```nginx
+# Web app
 server {
     listen 80;
     server_name tasky.yourdomain.com;
@@ -315,6 +341,24 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
+
+# Sync server (with WebSocket support)
+server {
+    listen 80;
+    server_name sync.tasky.yourdomain.com;
+
+    location / {
+        proxy_pass http://localhost:8093;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 3600s;
+    }
+}
 ```
 
 ```bash
@@ -323,8 +367,8 @@ sudo ln -s /etc/nginx/sites-available/tasky /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl restart nginx
 
-# Get SSL certificate
-sudo certbot --nginx -d tasky.yourdomain.com
+# Get SSL certificates
+sudo certbot --nginx -d tasky.yourdomain.com -d sync.tasky.yourdomain.com
 ```
 
 ### Testing CORS Configuration
