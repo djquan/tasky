@@ -2,7 +2,6 @@ import type { Task, WhenValue } from '@tasky/shared';
 import type { Command } from '../../undo';
 import {
   tasksMap,
-  inboxSortOrder,
   todaySortOrder,
   anytimeSortOrder,
   somedaySortOrder,

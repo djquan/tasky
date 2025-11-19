@@ -9,7 +9,6 @@ import {
 } from '@tasky/shared';
 import {
   tasksMap,
-  inboxSortOrder,
   todaySortOrder,
   anytimeSortOrder,
   somedaySortOrder,

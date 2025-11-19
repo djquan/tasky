@@ -4,7 +4,7 @@
  * Helper functions for testing React components with common providers and wrappers.
  */
 
-import { ReactElement, ReactNode } from 'react';
+import { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import type { Task, List, Tag } from '@tasky/shared';
 
