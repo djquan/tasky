@@ -45,7 +45,7 @@ async function run() {
     try {
       const internalObj = new URL(internalUrl);
       internalPath = internalObj.pathname + internalObj.search;
-    } catch (e) {
+    } catch {
       console.warn('   Could not parse internal URL, using as is');
       internalPath = internalUrl; // Fallback
     }

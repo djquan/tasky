@@ -65,7 +65,7 @@ class YSweetSyncProvider implements SyncProvider {
       try {
         const internalObj = new URL(internalUrl);
         internalPath = internalObj.pathname + internalObj.search;
-      } catch (e) {
+      } catch {
         // Fallback if internalUrl is not a full URL (unlikely)
         console.warn('[YSweetSync] Could not parse internal URL, using as is:', internalUrl);
         return internalUrl;
