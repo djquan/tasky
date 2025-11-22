@@ -4,7 +4,8 @@ import { createTask } from '../lib/tasks';
 import { WhenPicker } from './pickers/WhenPicker';
 import { ProjectAreaPicker } from './pickers/ProjectAreaPicker';
 import { useProjects, useAreas } from '../hooks/useEntities';
-import { formatDate } from '../lib/dateUtils';
+import { formatDate, parseNaturalDate } from '../lib/dateUtils';
+import { parseListReference } from '../lib/listUtils';
 import type { WhenValue } from '@tasky/shared';
 
 export function QuickEntry() {
@@ -51,6 +52,24 @@ export function QuickEntry() {
   };
 
   const whenDisplay = getWhenDisplay();
+
+  // Parse input for natural language dates
+  const detectedDate = useMemo(() => {
+    if (input.trim()) {
+      return parseNaturalDate(input);
+    }
+    return null;
+  }, [input]);
+
+  // Parse input for list/project references
+  const detectedList = useMemo(() => {
+    if (input.trim() && !listId) {
+      // Combine projects and areas for matching
+      const allLists = [...projects, ...areas];
+      return parseListReference(input, allLists);
+    }
+    return null;
+  }, [input, listId, projects, areas]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -161,6 +180,21 @@ export function QuickEntry() {
     toggleQuickEntry();
   };
 
+  const handleAcceptDateSuggestion = () => {
+    if (detectedDate) {
+      setScheduledDate(detectedDate.date);
+      setInput(detectedDate.remainingText);
+      setWhen('anytime');  // Reset when to anytime since we're using a specific date
+    }
+  };
+
+  const handleAcceptListSuggestion = () => {
+    if (detectedList) {
+      setListId(detectedList.list.id);
+      setInput(detectedList.remainingText);
+    }
+  };
+
   const handleWhenChange = (newWhen: WhenValue) => {
     setWhen(newWhen);
     setActiveSection(null);
@@ -205,6 +239,37 @@ export function QuickEntry() {
               placeholder="New To-Do"
               className="w-full text-2xl font-medium focus:outline-none bg-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 mb-2"
             />
+
+            {/* Suggestions */}
+            {(detectedDate || detectedList) && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {/* Date Suggestion */}
+                {detectedDate && !scheduledDate && (
+                  <button
+                    type="button"
+                    onClick={handleAcceptDateSuggestion}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors text-sm"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>Schedule for {detectedDate.displayText}</span>
+                  </button>
+                )}
+
+                {/* List Suggestion */}
+                {detectedList && !listId && (
+                  <button
+                    type="button"
+                    onClick={handleAcceptListSuggestion}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors text-sm"
+                  >
+                    <span className="text-sm">{detectedList.list.type === 'project' ? '📁' : '🗂️'}</span>
+                    <span>Add to {detectedList.list.title}</span>
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Notes */}
             <div className="mb-2">
