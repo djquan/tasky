@@ -226,6 +226,11 @@ export function getUpcomingTasks(): Task[] {
     .filter(task => {
       if (task.completed || task.canceled) return false;
 
+      // Exclude tasks explicitly marked for today/evening or someday
+      if (task.when === 'today' || task.when === 'evening' || task.when === 'someday') {
+        return false;
+      }
+
       // Future scheduled date
       if (task.scheduledDate && task.scheduledDate >= tomorrow) return true;
 

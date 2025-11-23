@@ -22,6 +22,19 @@ export type ViewType =
   | 'tag';
 
 // ============================================================================
+// Recurrence Types
+// ============================================================================
+
+export type RecurrenceFrequency = 'daily' | 'weekdays' | 'weekly' | 'monthly' | 'yearly';
+
+export interface RecurrenceRule {
+  frequency: RecurrenceFrequency;
+  interval: number;          // e.g. 1 = every day/week/month, 2 = every 2 weeks
+  endsAt?: number | null;    // optional timestamp for "repeat until"
+  basis?: 'scheduled' | 'completion'; // 'scheduled' (default) = from due date, 'completion' = from completion date
+}
+
+// ============================================================================
 // Core Entities
 // ============================================================================
 
@@ -44,6 +57,11 @@ export interface Task {
   completedAt: number | null;
   updatedAt: number;
   sortOrder: number;
+
+  // Recurrence
+  recurrenceRule?: RecurrenceRule | null;
+  recurrenceSeriesId?: string | null;   // same for all tasks in a series
+  recurrenceInstance?: number | null;   // 1-based index within the series
 }
 
 export interface List {

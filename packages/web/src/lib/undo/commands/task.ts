@@ -7,7 +7,7 @@ import {
   somedaySortOrder,
   listTaskSortOrders
 } from '../../yjs';
-import { now } from '@tasky/shared';
+import { now, generateId, getNextOccurrenceTimestamp } from '@tasky/shared';
 import { addToSortOrder, removeFromSortOrder } from '../../sortOrderUtils';
 
 /**
@@ -181,11 +181,16 @@ export class ToggleTaskCommand implements Command {
   private taskId: string;
   private oldCompleted: boolean;
   private oldCompletedAt: number | null;
+  private oldRecurrenceSeriesId: string | null | undefined;
+  private oldRecurrenceInstance: number | null | undefined;
+  private nextTaskId: string | null = null; // ID of the next task instance if created
 
   constructor(task: Task) {
     this.taskId = task.id;
     this.oldCompleted = task.completed;
     this.oldCompletedAt = task.completedAt;
+    this.oldRecurrenceSeriesId = task.recurrenceSeriesId;
+    this.oldRecurrenceInstance = task.recurrenceInstance;
   }
 
   execute(): void {
@@ -193,6 +198,53 @@ export class ToggleTaskCommand implements Command {
     if (!task) return;
 
     const timestamp = now();
+
+    // Handle recurring tasks: if completing, check for recurrence
+    if (!task.completed && task.recurrenceRule) {
+      // 1. Complete current task
+      const completedTask: Task = {
+        ...task,
+        completed: true,
+        completedAt: timestamp,
+        updatedAt: timestamp,
+        // Ensure series ID is set
+        recurrenceSeriesId: task.recurrenceSeriesId ?? task.id,
+        recurrenceInstance: task.recurrenceInstance ?? 1
+      };
+      tasksMap.set(this.taskId, completedTask);
+
+      // 2. Calculate next occurrence
+      const baseDate = task.scheduledDate ?? task.deadline ?? task.createdAt;
+      const nextTs = getNextOccurrenceTimestamp(baseDate, task.recurrenceRule, timestamp);
+
+      if (nextTs !== null) {
+        // 3. Create next instance
+        const nextId = generateId();
+        this.nextTaskId = nextId;
+
+        const nextTask: Task = {
+          ...completedTask,
+          id: nextId,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+          completed: false,
+          completedAt: null,
+          scheduledDate: nextTs,
+          // Reset when to anytime so it relies on scheduledDate
+          when: 'anytime',
+          // Keep recurrence rule and series info
+          recurrenceSeriesId: completedTask.recurrenceSeriesId,
+          recurrenceInstance: (completedTask.recurrenceInstance ?? 1) + 1,
+          sortOrder: timestamp
+        };
+
+        tasksMap.set(nextId, nextTask);
+        addToSortOrder(nextTask);
+      }
+      return;
+    }
+
+    // Standard toggle behavior
     const updated: Task = {
       ...task,
       completed: !task.completed,
@@ -203,6 +255,15 @@ export class ToggleTaskCommand implements Command {
   }
 
   undo(): void {
+    // If we created a next task instance, remove it
+    if (this.nextTaskId) {
+      const nextTask = tasksMap.get(this.nextTaskId);
+      if (nextTask) {
+        removeFromSortOrder(nextTask);
+        tasksMap.delete(this.nextTaskId);
+      }
+    }
+
     const task = tasksMap.get(this.taskId);
     if (!task) return;
 
@@ -210,6 +271,8 @@ export class ToggleTaskCommand implements Command {
       ...task,
       completed: this.oldCompleted,
       completedAt: this.oldCompletedAt,
+      recurrenceSeriesId: this.oldRecurrenceSeriesId ?? null,
+      recurrenceInstance: this.oldRecurrenceInstance ?? null,
       updatedAt: now()
     };
     tasksMap.set(this.taskId, updated);

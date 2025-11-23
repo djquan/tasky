@@ -3,10 +3,11 @@ import { useNavigation } from '../store/navigation';
 import { createTask } from '../lib/tasks';
 import { WhenPicker } from './pickers/WhenPicker';
 import { ProjectAreaPicker } from './pickers/ProjectAreaPicker';
+import { RecurrencePicker } from './pickers/RecurrencePicker';
 import { useProjects, useAreas } from '../hooks/useEntities';
 import { formatDate, parseNaturalDate } from '../lib/dateUtils';
 import { parseListReference } from '../lib/listUtils';
-import type { WhenValue } from '@tasky/shared';
+import type { WhenValue, RecurrenceRule } from '@tasky/shared';
 
 export function QuickEntry() {
   const { quickEntryOpen, toggleQuickEntry, currentView, contextId } = useNavigation();
@@ -18,6 +19,7 @@ export function QuickEntry() {
   const [when, setWhen] = useState<WhenValue>('anytime');  // Default to anytime
   const [scheduledDate, setScheduledDate] = useState<number | null>(null);
   const [listId, setListId] = useState<string | null>(null);
+  const [recurrenceRule, setRecurrenceRule] = useState<RecurrenceRule | null>(null);
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -122,6 +124,7 @@ export function QuickEntry() {
       setWhen('anytime');
       setScheduledDate(null);
       setListId(null);
+      setRecurrenceRule(null);
       setActiveSection(null);
     }
   }, [quickEntryOpen, currentView, contextId]);
@@ -165,6 +168,10 @@ export function QuickEntry() {
       checklistItems: [],
       listId,
       headingId: null,
+      recurrenceRule,
+      // If recurrence is set, initialize series
+      recurrenceSeriesId: recurrenceRule ? crypto.randomUUID() : null,
+      recurrenceInstance: recurrenceRule ? 1 : null,
       completed: false,
       canceled: false,
       sortOrder: Date.now()
@@ -176,6 +183,7 @@ export function QuickEntry() {
     setWhen('anytime');
     setScheduledDate(null);
     setListId(null);
+    setRecurrenceRule(null);
     setActiveSection(null);
     toggleQuickEntry();
   };
@@ -213,6 +221,11 @@ export function QuickEntry() {
   const handleAreaChange = (id: string | null) => {
     // Always update - if id is null, it means we're clearing (only called when deselecting)
     setListId(id);
+  };
+
+  const handleRecurrenceChange = (rule: RecurrenceRule | null) => {
+    setRecurrenceRule(rule);
+    setActiveSection(null);
   };
 
   return (
@@ -370,6 +383,49 @@ export function QuickEntry() {
                         areaId={areaId}
                         onChangeProject={handleProjectChange}
                         onChangeArea={handleAreaChange}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Recurrence Icon */}
+                <div className="relative" data-dropdown>
+                  {recurrenceRule ? (
+                    <button
+                      type="button"
+                      onClick={() => setActiveSection(activeSection === 'recurrence' ? null : 'recurrence')}
+                      className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-colors bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50"
+                      title="Repeat"
+                      aria-label="Set recurrence"
+                    >
+                      <span className="text-sm">🔄</span>
+                      <span className="text-sm capitalize">
+                        {recurrenceRule.frequency}
+                      </span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setActiveSection(activeSection === 'recurrence' ? null : 'recurrence')}
+                      className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-light-hover dark:hover:bg-dark-hover rounded-lg transition-colors"
+                      title="Repeat"
+                      aria-label="Set recurrence"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    </button>
+                  )}
+
+                  {/* Recurrence Popover */}
+                  {activeSection === 'recurrence' && (
+                    <div
+                      className="absolute top-full left-0 mt-2 z-20 p-4 bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg shadow-xl min-w-[320px]"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <RecurrencePicker
+                        value={recurrenceRule}
+                        onChange={handleRecurrenceChange}
                       />
                     </div>
                   )}
