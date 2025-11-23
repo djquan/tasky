@@ -36,7 +36,7 @@ globalThis.indexedDB = {
 } as unknown as IDBFactory;
 
 // Mock localStorage if not available or functional
-// Node 23+ introduces an experimental localStorage which might conflict with happy-dom or be incomplete
+// Node 25+ introduces an experimental localStorage which might conflict with happy-dom or be incomplete
 if (
   typeof globalThis.localStorage === 'undefined' ||
   typeof globalThis.localStorage.getItem === 'undefined'
