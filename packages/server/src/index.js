@@ -8,7 +8,7 @@
 import http from 'http';
 import { DocumentManager } from '@y-sweet/sdk';
 
-// Load environment variables from .env file if present (Node.js 20+)
+// Load environment variables from .env file if present (Node.js 25+)
 try {
   process.loadEnvFile();
 } catch {
