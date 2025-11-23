@@ -41,8 +41,8 @@ See [PLAN.md](./PLAN.md) for detailed architecture and roadmap.
 
 ## Requirements
 
-- Node.js >= 18
-- pnpm >= 8
+- Node.js >= 25
+- pnpm >= 10
 
 ## Project Structure
 

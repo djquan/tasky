@@ -35,8 +35,12 @@ globalThis.indexedDB = {
   deleteDatabase: () => ({ onsuccess: null, onerror: null }),
 } as unknown as IDBFactory;
 
-// Mock localStorage if not available
-if (typeof globalThis.localStorage === 'undefined') {
+// Mock localStorage if not available or functional
+// Node 23+ introduces an experimental localStorage which might conflict with happy-dom or be incomplete
+if (
+  typeof globalThis.localStorage === 'undefined' ||
+  typeof globalThis.localStorage.getItem === 'undefined'
+) {
   const localStorageMock = (() => {
     let store: Record<string, string> = {};
 
@@ -51,10 +55,14 @@ if (typeof globalThis.localStorage === 'undefined') {
       clear: () => {
         store = {};
       },
+      length: 0,
+      key: (_index: number) => null,
     };
   })();
 
   Object.defineProperty(globalThis, 'localStorage', {
     value: localStorageMock,
+    writable: true,
+    configurable: true,
   });
 }
