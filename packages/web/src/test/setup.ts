@@ -56,7 +56,7 @@ if (
         store = {};
       },
       length: 0,
-      key: (_index: number) => null,
+      key: (index: number) => Object.keys(store)[index] || null,
     };
   })();
 
