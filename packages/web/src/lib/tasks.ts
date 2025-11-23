@@ -5,7 +5,8 @@ import {
   type TaskInput,
   type WhenValue,
   INPUT_LIMITS,
-  sanitizeInput
+  sanitizeInput,
+  getNextOccurrenceTimestamp
 } from '@tasky/shared';
 import {
   tasksMap,
@@ -58,7 +59,10 @@ function _createTaskInternal(input: Partial<TaskInput>): Task {
     createdAt: timestamp,
     completedAt: null,
     updatedAt: timestamp,
-    sortOrder: input.sortOrder || timestamp
+    sortOrder: input.sortOrder || timestamp,
+    recurrenceRule: input.recurrenceRule ?? null,
+    recurrenceSeriesId: input.recurrenceSeriesId ?? null,
+    recurrenceInstance: input.recurrenceInstance ?? null
   };
 
   tasksMap.set(id, task);
@@ -100,7 +104,10 @@ export function createTask(input: Partial<TaskInput>): Task {
     createdAt: timestamp,
     completedAt: null,
     updatedAt: timestamp,
-    sortOrder: input.sortOrder || timestamp
+    sortOrder: input.sortOrder || timestamp,
+    recurrenceRule: input.recurrenceRule ?? null,
+    recurrenceSeriesId: input.recurrenceSeriesId ?? null,
+    recurrenceInstance: input.recurrenceInstance ?? null
   };
 
   const command = new CreateTaskCommand(task);
@@ -138,6 +145,12 @@ function _updateTaskInternal(id: string, updates: Partial<Task>): void {
   }
   if (updates.notes !== undefined) {
     sanitizedUpdates.notes = sanitizeInput(updates.notes).slice(0, INPUT_LIMITS.TASK_NOTES);
+  }
+
+  // Auto-initialize recurrence series if adding recurrence for the first time
+  if (updates.recurrenceRule && !task.recurrenceRule) {
+    sanitizedUpdates.recurrenceSeriesId = task.recurrenceSeriesId ?? task.id;
+    sanitizedUpdates.recurrenceInstance = task.recurrenceInstance ?? 1;
   }
 
   const updatedTask: Task = {
@@ -183,6 +196,12 @@ export function updateTask(id: string, updates: Partial<Task>): void {
   }
   if (updates.notes !== undefined) {
     sanitizedUpdates.notes = sanitizeInput(updates.notes).slice(0, INPUT_LIMITS.TASK_NOTES);
+  }
+
+  // Auto-initialize recurrence series if adding recurrence for the first time
+  if (updates.recurrenceRule && !task.recurrenceRule) {
+    sanitizedUpdates.recurrenceSeriesId = task.recurrenceSeriesId ?? task.id;
+    sanitizedUpdates.recurrenceInstance = task.recurrenceInstance ?? 1;
   }
 
   const oldTask = { ...task };
@@ -234,6 +253,47 @@ function _toggleTaskInternal(id: string): void {
   }
 
   const timestamp = now();
+
+  // Handle recurring tasks: if completing, check for recurrence
+  // Note: We don't track undo for this internal method, so we just do the update.
+  if (!task.completed && task.recurrenceRule) {
+    // 1. Complete current task
+    const completedTask: Task = {
+      ...task,
+      completed: true,
+      completedAt: timestamp,
+      updatedAt: timestamp,
+      recurrenceSeriesId: task.recurrenceSeriesId ?? task.id,
+      recurrenceInstance: task.recurrenceInstance ?? 1
+    };
+    tasksMap.set(id, completedTask);
+
+    // 2. Calculate next occurrence
+    const baseDate = task.scheduledDate ?? task.deadline ?? task.createdAt;
+    const nextTs = getNextOccurrenceTimestamp(baseDate, task.recurrenceRule, timestamp);
+
+    if (nextTs !== null) {
+      // 3. Create next instance
+      const nextId = generateId();
+      const nextTask: Task = {
+        ...completedTask,
+        id: nextId,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        completed: false,
+        completedAt: null,
+        scheduledDate: nextTs,
+        recurrenceSeriesId: completedTask.recurrenceSeriesId,
+        recurrenceInstance: (completedTask.recurrenceInstance ?? 1) + 1,
+        sortOrder: timestamp
+      };
+
+      tasksMap.set(nextId, nextTask);
+      addToSortOrder(nextTask);
+    }
+    return;
+  }
+
   const updated: Task = {
     ...task,
     completed: !task.completed,

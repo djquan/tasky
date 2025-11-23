@@ -275,6 +275,62 @@ describe('tasks.ts', () => {
       expect(updated?.completedAt).toBeNull();
     });
 
+    it('should handle recurring tasks completion', async () => {
+      const task = tasks.createTask({
+        title: 'Recurring Task',
+        completed: false,
+        recurrenceRule: { frequency: 'daily', interval: 1 },
+        scheduledDate: Date.now()
+      });
+      
+      // Verify initial state
+      expect(task.recurrenceRule).toBeDefined();
+      
+      // Complete the task
+      tasks.toggleTask(task.id);
+      
+      // Check if current task is completed
+      const completedTask = tasks.getTask(task.id);
+      expect(completedTask?.completed).toBe(true);
+      expect(completedTask?.completedAt).toBeTruthy();
+      
+      // Verify a new task was created
+      const allTasks = Array.from(mockTasksMap.values());
+      const nextTask = allTasks.find(t => t.id !== task.id && t.title === 'Recurring Task');
+      
+      expect(nextTask).toBeDefined();
+      expect(nextTask?.completed).toBe(false);
+      expect(nextTask?.recurrenceSeriesId).toBe(task.id); // Or however series ID is initialized
+      expect(nextTask?.scheduledDate).toBeGreaterThan(task.scheduledDate || 0);
+    });
+
+    it('should undo recurring task completion', () => {
+      const task = tasks.createTask({
+        title: 'Recurring Task Undo',
+        completed: false,
+        recurrenceRule: { frequency: 'daily', interval: 1 },
+        scheduledDate: Date.now()
+      });
+      
+      // Complete
+      tasks.toggleTask(task.id);
+      
+      // Verify new task exists
+      const allTasksBeforeUndo = Array.from(mockTasksMap.values());
+      expect(allTasksBeforeUndo.length).toBe(2); // Original + Next
+      
+      // Undo
+      undoManager.undo();
+      
+      // Verify state restored
+      const originalTask = tasks.getTask(task.id);
+      expect(originalTask?.completed).toBe(false);
+      
+      const allTasksAfterUndo = Array.from(mockTasksMap.values());
+      expect(allTasksAfterUndo.length).toBe(1); // Only original remains
+      expect(allTasksAfterUndo[0].id).toBe(task.id);
+    });
+
     it('should warn when task not found', () => {
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       tasks.toggleTask('non-existent');
