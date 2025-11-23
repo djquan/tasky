@@ -33,9 +33,19 @@ export function getNextOccurrenceTimestamp(
   // 2. If that candidate is in the past, jump forward to the next future slot relative to baseDate pattern
   //    (This preserves "every Monday" even if you missed 3 Mondays)
   
-  const base = new Date(baseDate);
-  // Reset hours to ensure clean date calculations if baseDate was midnight-aligned
   // But we should respect if it had time. For now, assume date-granularity is primary.
+  
+  // Determine the anchor date for calculation
+  let anchorDate: number;
+  if (rule.basis === 'completion') {
+     anchorDate = nowTs;
+  } else {
+     // basis is 'scheduled' (default)
+     anchorDate = baseDate;
+  }
+
+  const anchor = new Date(anchorDate);
+  // Use anchor for calculation
   
   let next: Date;
 
@@ -66,7 +76,7 @@ export function getNextOccurrenceTimestamp(
         // Handle month edge cases (e.g. Jan 31 -> Feb 28/29)
         // setMonth handles this by rolling over, which might not be desired.
         // Better behavior: maintain day of month if possible.
-        const targetDay = base.getDate();
+        const targetDay = anchor.getDate();
         result.setMonth(result.getMonth() + (interval * count));
         
         // If we rolled over (e.g. Jan 31 + 1 month -> March 3), clamp back to end of month
@@ -78,7 +88,7 @@ export function getNextOccurrenceTimestamp(
         break;
       }
       case 'yearly': {
-        const targetMonth = base.getMonth();
+        const targetMonth = anchor.getMonth();
         result.setFullYear(result.getFullYear() + (interval * count));
         
         // Handle leap year edge case (Feb 29 -> Feb 28 in non-leap years)
@@ -106,7 +116,7 @@ export function getNextOccurrenceTimestamp(
   // Let's stick to Strict Schedule for consistency first. 
   // But we must ensure we advance at least once from baseDate.
   
-  next = advance(base, 1);
+  next = advance(anchor, 1);
   
   // Optimization: If the calculated next is still far in the past (e.g. recurring daily from 2020), 
   // loop to catch up to *today* so we don't generate 1000 tasks one by one.
@@ -114,29 +124,33 @@ export function getNextOccurrenceTimestamp(
   
   if (next.getTime() < nowTs) {
      // It's in the past.
-     // For 'daily' and 'weekdays', we usually want to reset to "Tomorrow" relative to *completion* (now) if we missed it?
-     // Or do we want to catch up?
-     // Most todo apps:
-     // - Daily: Next is tomorrow (relative to today).
-     // - Weekly: Next is next scheduled weekday (catch up).
      
-     if (rule.frequency === 'daily' || rule.frequency === 'weekdays') {
-         // Reset base to today
-         const today = new Date(nowTs);
-         // Keep the time from base if any? base usually has time?
-         // Assuming scheduledDate is mostly date-based (00:00 or similar).
-         // Let's project base time onto today.
-         const newBase = new Date(today);
-         newBase.setHours(base.getHours(), base.getMinutes(), base.getSeconds(), base.getMilliseconds());
-         
-         // Calculate next from "today"
-         next = advance(newBase, 1);
-     } else {
-         // For weekly/monthly/yearly, find the next slot that is in the future (or today)
-         // This "catches up" the schedule.
-         while (next.getTime() < nowTs) {
-             next = advance(next, 1);
-         }
+     // If basis is 'completion', next will effectively be > nowTs (since anchor is nowTs), so we don't enter here.
+     // If basis is 'scheduled', we want to catch up to the next future slot.
+     
+     // Remove the special "Daily/Weekdays" override that reset to "Today".
+     // Rely purely on the loop to find the next valid slot.
+     // This ensures that if I missed yesterday's task and complete it today,
+     // strict schedule (daily) will find Today as the next slot (if current time is before scheduled time?)
+     // Wait, advance(yesterday, 1) -> Today.
+     // If Today < Now (e.g. 9am < 10am), loop will advance to Tomorrow.
+     // This effectively skips Today's instance. 
+     // Is that desired?
+     // If I have "Daily Standup 9am".
+     // I miss Monday. I do it Tuesday 10am.
+     // Next should be Tuesday 9am (Missed) -> Catch up -> Wednesday 9am?
+     // If I say "I did Monday's standup", Tuesday's is still pending.
+     // Ideally I should see Tuesday's standup immediately.
+     // But if "Tuesday 9am" is in the past relative to "Tuesday 10am", strict catchup will skip it.
+     // 
+     // To fix this "skip today" issue for strictly scheduled daily tasks:
+     // We probably want `next` to be the first occurrence that is > (now - some threshold)?
+     // Or just accept that if you complete it late, the "next" one is the one *after* now.
+     // 
+     // Let's keep the simple "catch up to future" logic for now as it's standard for "strict" recurrence.
+     
+     while (next.getTime() < nowTs) {
+         next = advance(next, 1);
      }
   }
 

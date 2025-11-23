@@ -31,6 +31,7 @@ export interface RecurrenceRule {
   frequency: RecurrenceFrequency;
   interval: number;          // e.g. 1 = every day/week/month, 2 = every 2 weeks
   endsAt?: number | null;    // optional timestamp for "repeat until"
+  basis?: 'scheduled' | 'completion'; // 'scheduled' (default) = from due date, 'completion' = from completion date
 }
 
 // ============================================================================

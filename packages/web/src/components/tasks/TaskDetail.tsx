@@ -117,7 +117,9 @@ export function TaskDetail() {
   };
 
   const handleScheduledDateChange = (scheduledDate: number | null) => {
-    updateTask(task.id, { scheduledDate });
+    // If setting a specific date, reset 'when' to 'anytime' so the date determines visibility
+    // This prevents a task from staying in "Today" view if rescheduled to the future
+    updateTask(task.id, { scheduledDate, when: 'anytime' });
     setActiveSection(null);
   };
 

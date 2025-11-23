@@ -30,6 +30,14 @@ export function RecurrencePicker({ value, onChange }: RecurrencePickerProps) {
     });
   };
 
+  const handleBasisChange = (basis: 'scheduled' | 'completion') => {
+    if (!value) return;
+    onChange({
+      ...value,
+      basis
+    });
+  };
+
   const clearRecurrence = () => {
     onChange(null);
   };
@@ -75,9 +83,9 @@ export function RecurrencePicker({ value, onChange }: RecurrencePickerProps) {
         ))}
       </div>
 
-      {/* Interval (only show if recurrence is selected) */}
+      {/* Interval and Basis (only show if recurrence is selected) */}
       {value && (
-        <div className="pt-3 border-t border-light-border dark:border-dark-border px-3">
+        <div className="pt-3 border-t border-light-border dark:border-dark-border px-3 space-y-3">
           <div className="flex items-center gap-2">
             <label className="text-xs text-gray-700 dark:text-gray-300">
               Repeat every
@@ -96,6 +104,41 @@ export function RecurrencePicker({ value, onChange }: RecurrencePickerProps) {
               {value.frequency === 'monthly' && (value.interval === 1 ? 'month' : 'months')}
               {value.frequency === 'yearly' && (value.interval === 1 ? 'year' : 'years')}
             </span>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-700 dark:text-gray-300">
+              Repeat from
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => handleBasisChange('scheduled')}
+                className={`px-2 py-1 text-xs rounded border transition-colors ${
+                  (!value.basis || value.basis === 'scheduled')
+                    ? 'bg-blue-100 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400'
+                    : 'border-light-border dark:border-dark-border text-gray-600 dark:text-gray-400 hover:bg-light-hover dark:hover:bg-dark-hover'
+                }`}
+              >
+                Scheduled Date
+              </button>
+              <button
+                type="button"
+                onClick={() => handleBasisChange('completion')}
+                className={`px-2 py-1 text-xs rounded border transition-colors ${
+                  value.basis === 'completion'
+                    ? 'bg-blue-100 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400'
+                    : 'border-light-border dark:border-dark-border text-gray-600 dark:text-gray-400 hover:bg-light-hover dark:hover:bg-dark-hover'
+                }`}
+              >
+                Completion Date
+              </button>
+            </div>
+            <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+              {(!value.basis || value.basis === 'scheduled') 
+                ? "Next occurrence will be based on the original schedule." 
+                : "Next occurrence will be calculated from when you complete the task."}
+            </p>
           </div>
         </div>
       )}

@@ -230,6 +230,8 @@ export class ToggleTaskCommand implements Command {
           completed: false,
           completedAt: null,
           scheduledDate: nextTs,
+          // Reset when to anytime so it relies on scheduledDate
+          when: 'anytime',
           // Keep recurrence rule and series info
           recurrenceSeriesId: completedTask.recurrenceSeriesId,
           recurrenceInstance: (completedTask.recurrenceInstance ?? 1) + 1,
