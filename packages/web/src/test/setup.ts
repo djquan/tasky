@@ -55,7 +55,9 @@ if (
       clear: () => {
         store = {};
       },
-      length: 0,
+      get length() {
+        return Object.keys(store).length;
+      },
       key: (index: number) => Object.keys(store)[index] || null,
     };
   })();
