@@ -325,6 +325,8 @@ describe('tasks.ts', () => {
       // Verify state restored
       const originalTask = tasks.getTask(task.id);
       expect(originalTask?.completed).toBe(false);
+      expect(originalTask?.recurrenceSeriesId).toBeNull(); // Should be null as it was initially
+      expect(originalTask?.recurrenceInstance).toBeNull();
       
       const allTasksAfterUndo = Array.from(mockTasksMap.values());
       expect(allTasksAfterUndo.length).toBe(1); // Only original remains

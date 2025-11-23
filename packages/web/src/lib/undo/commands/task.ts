@@ -181,12 +181,16 @@ export class ToggleTaskCommand implements Command {
   private taskId: string;
   private oldCompleted: boolean;
   private oldCompletedAt: number | null;
+  private oldRecurrenceSeriesId: string | null | undefined;
+  private oldRecurrenceInstance: number | null | undefined;
   private nextTaskId: string | null = null; // ID of the next task instance if created
 
   constructor(task: Task) {
     this.taskId = task.id;
     this.oldCompleted = task.completed;
     this.oldCompletedAt = task.completedAt;
+    this.oldRecurrenceSeriesId = task.recurrenceSeriesId;
+    this.oldRecurrenceInstance = task.recurrenceInstance;
   }
 
   execute(): void {
@@ -265,6 +269,8 @@ export class ToggleTaskCommand implements Command {
       ...task,
       completed: this.oldCompleted,
       completedAt: this.oldCompletedAt,
+      recurrenceSeriesId: this.oldRecurrenceSeriesId ?? null,
+      recurrenceInstance: this.oldRecurrenceInstance ?? null,
       updatedAt: now()
     };
     tasksMap.set(this.taskId, updated);
