@@ -11,7 +11,7 @@ import { DocumentManager } from '@y-sweet/sdk';
 // Load environment variables from .env file if present (Node.js 20+)
 try {
   process.loadEnvFile();
-} catch (e) {
+} catch {
   // No .env file found, or running in environment where it's not needed
 }
 
