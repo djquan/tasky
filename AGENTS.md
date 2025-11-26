@@ -6,8 +6,8 @@ Tasky is a local-first PWA todo app built with CRDTs (Yjs) for conflict-free dat
 
 **Requirements:**
 
-- Node.js >= 18
-- pnpm >= 8
+- Node.js >= 25
+- pnpm >= 10
 
 ## Commands
 

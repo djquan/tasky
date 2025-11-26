@@ -22,7 +22,7 @@
     "local-first"
   ],
   "engines": {
-    "node": ">=18",
+    "node": ">=25",
     "pnpm": ">=10"
   },
   "packageManager": "pnpm@10.20.0",

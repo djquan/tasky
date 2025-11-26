@@ -8,6 +8,13 @@
 import http from 'http';
 import { DocumentManager } from '@y-sweet/sdk';
 
+// Load environment variables from .env file if present (Node.js 25+)
+try {
+  process.loadEnvFile();
+} catch {
+  // No .env file found, or running in environment where it's not needed
+}
+
 const PORT = process.env.PORT || 8092;
 const YSWEET_URL = process.env.YSWEET_URL || 'http://localhost:8091';
 const DOCUMENT_ID = process.env.DOCUMENT_ID || 'tasky-main';
