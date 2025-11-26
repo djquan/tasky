@@ -2,6 +2,11 @@
 
 Local-first PWA todo app powered by CRDTs.
 
+<img width="1253" height="1224" alt="Screenshot 2025-11-25 at 6 59 28 PM" src="https://github.com/user-attachments/assets/56eab7d8-b46a-45f3-ac3a-2a23a04d839c" />
+
+<img width="1152" height="1230" alt="Screenshot 2025-11-25 at 7 00 17 PM" src="https://github.com/user-attachments/assets/f79fbf14-4b6c-49fc-8199-e5246078c3ef" />
+
+
 ## Quick Start
 
 ```bash
