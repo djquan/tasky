@@ -22,8 +22,8 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@tasky/shared": "workspace:*",
     "@y-sweet/client": "^0.9.1",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
     "y-indexeddb": "^9.0.12",
     "y-websocket": "^3.0.0",
     "yjs": "^13.6.27"
@@ -35,12 +35,12 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
-    "@vitest/coverage-v8": "^4.0.13",
-    "happy-dom": "^20.0.10",
+    "@vitejs/plugin-react": "^5.1.2",
+    "@vitest/coverage-v8": "^4.0.15",
+    "happy-dom": "^20.0.11",
     "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3",
-    "vite": "^7.2.4",
-    "vite-plugin-pwa": "^1.1.0"
+    "vite": "^7.2.7",
+    "vite-plugin-pwa": "^1.2.0"
   }
 }
