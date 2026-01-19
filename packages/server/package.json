@@ -14,7 +14,7 @@
     "@y-sweet/sdk": "^0.9.1"
   },
   "devDependencies": {
-    "@types/node": "^24.10.1"
+    "@types/node": "^25.0.9"
   }
 }
 
