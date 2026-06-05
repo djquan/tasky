@@ -14,6 +14,7 @@ export function TaskDetail() {
   const { task } = useTask(selectedTaskId);
   const { projects } = useProjects();
   const { areas } = useAreas();
+  const taskListId = task?.listId ?? null;
 
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
@@ -21,6 +22,7 @@ export function TaskDetail() {
 
   useEffect(() => {
     if (task) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Synchronizing editable form state with selected task
       setTitle(task.title);
       setNotes(task.notes);
     }
@@ -28,15 +30,15 @@ export function TaskDetail() {
 
   // Determine if task.listId is a project or area
   const { projectId, areaId, list } = useMemo(() => {
-    if (!task?.listId) return { projectId: null, areaId: null, list: null };
-    const project = projects.find(p => p.id === task.listId);
-    const area = areas.find(a => a.id === task.listId);
+    if (!taskListId) return { projectId: null, areaId: null, list: null };
+    const project = projects.find(p => p.id === taskListId);
+    const area = areas.find(a => a.id === taskListId);
     return {
       projectId: project ? project.id : null,
       areaId: area ? area.id : null,
       list: project || area || null
     };
-  }, [task?.listId, projects, areas]);
+  }, [taskListId, projects, areas]);
 
   // Close dropdowns on Escape key
   useEffect(() => {

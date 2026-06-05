@@ -26,6 +26,7 @@ export function SettingsPopup() {
   // Load settings when popup opens
   useEffect(() => {
     if (settingsOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Synchronizing popup state from persisted settings when opened
       setSettings(getSyncSettings());
       setSyncState(getSyncState());
     }
@@ -146,8 +147,8 @@ export function SettingsPopup() {
               </label>
               <input
                 type="text"
-                value={settings.tokenUrl}
-                onChange={(e) => setSettings({ ...settings, tokenUrl: e.target.value })}
+                value={settings.syncUrl}
+                onChange={(e) => setSettings({ ...settings, syncUrl: e.target.value })}
                 placeholder="http://localhost:8080"
                 className="w-full px-3 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-surface dark:bg-dark-surface text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />

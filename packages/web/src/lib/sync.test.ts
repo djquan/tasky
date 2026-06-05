@@ -19,7 +19,7 @@ vi.mock('y-websocket', () => {
 });
 
 // Mock fetch
-global.fetch = vi.fn();
+globalThis.fetch = vi.fn();
 
 describe('sync.ts', () => {
   let ydoc: Y.Doc;
@@ -28,9 +28,7 @@ describe('sync.ts', () => {
     ydoc = new Y.Doc();
     vi.clearAllMocks();
     // Reset environment variables
-    vi.stubEnv('VITE_SYNC_ENABLED', 'false');
-    vi.stubEnv('VITE_YSWEET_URL', '');
-    vi.stubEnv('VITE_YSWEET_TOKEN_URL', '');
+    vi.stubEnv('VITE_SYNC_URL', '');
   });
 
   afterEach(() => {
@@ -43,14 +41,14 @@ describe('sync.ts', () => {
       expect(isSyncEnabled()).toBe(false);
     });
 
-    it('should return false when sync enabled but token URL missing', () => {
-      localStorage.setItem('tasky-settings', JSON.stringify({ enabled: true, tokenUrl: '' }));
+    it('should return false when sync enabled but sync URL missing', () => {
+      localStorage.setItem('tasky-settings', JSON.stringify({ enabled: true, syncUrl: '' }));
       expect(isSyncEnabled()).toBe(false);
       localStorage.removeItem('tasky-settings');
     });
 
-    it('should return true when sync enabled and token URL provided', () => {
-      localStorage.setItem('tasky-settings', JSON.stringify({ enabled: true, tokenUrl: 'http://localhost:8080' }));
+    it('should return true when sync enabled and sync URL provided', () => {
+      localStorage.setItem('tasky-settings', JSON.stringify({ enabled: true, syncUrl: 'http://localhost:8080' }));
       expect(isSyncEnabled()).toBe(true);
       localStorage.removeItem('tasky-settings');
     });
@@ -184,6 +182,10 @@ describe('sync.ts', () => {
     });
 
     describe('reconnect', () => {
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
       it('should disconnect and reconnect', async () => {
         const mockResponse = {
           token: 'ws://y-sweet:8091/d/test-doc/ws',
@@ -206,6 +208,21 @@ describe('sync.ts', () => {
 
         expect(initialProvider?.destroy).toHaveBeenCalled();
         expect(fetch).toHaveBeenCalledTimes(2);
+      });
+
+      it('should stop scheduled reconnects after max attempts', async () => {
+        vi.useFakeTimers();
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
+        vi.mocked(fetch).mockRejectedValue(new Error('Network error'));
+
+        await expect(provider.connect()).rejects.toThrow();
+
+        for (let i = 0; i < 11; i++) {
+          await vi.runOnlyPendingTimersAsync();
+        }
+
+        expect(fetch).toHaveBeenCalledTimes(11);
+        consoleSpy.mockRestore();
       });
     });
   });

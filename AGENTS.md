@@ -124,15 +124,13 @@ ydoc (single Y.Doc)
    docker-compose up -d
    ```
 
-2. **Configure web app** (`packages/web/.env`):
+2. **Configure the default sync URL for the web app** (`packages/web/.env`):
 
    ```env
-   VITE_SYNC_ENABLED=true
-   VITE_YSWEET_URL=ws://localhost:1234
-   VITE_YSWEET_TOKEN_URL=http://localhost:8092/token
+   VITE_SYNC_URL=http://localhost:8092
    ```
 
-3. **Sync initializes automatically** when `waitForSync()` is called
+3. **Enable sync in Settings**. Once enabled, sync initializes automatically when `waitForSync()` is called.
 
 **Connection Management:**
 

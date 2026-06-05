@@ -22,8 +22,6 @@ services:
       - PORT=8092
       # Internal URL for token server to connect to Y-Sweet (Docker network)
       - YSWEET_URL=http://y-sweet:8091
-      # External URL that clients use to connect to Y-Sweet (host network)
-      - YSWEET_CLIENT_URL=ws://localhost:1234
       - DOCUMENT_ID=tasky-main
     depends_on:
       - y-sweet

@@ -21,14 +21,16 @@ function isValidUrl(urlString: string): boolean {
 
 export interface SyncSettings {
   enabled: boolean;
-  tokenUrl: string; // The base Sync URL (e.g. http://localhost:8080)
+  syncUrl: string; // The base sync URL (e.g. http://localhost:8080)
 }
 
 /**
  * Legacy settings interface for migration
  * @deprecated
  */
-interface LegacySyncSettings extends SyncSettings {
+interface StoredSyncSettings extends Partial<SyncSettings> {
+  enabled?: boolean;
+  tokenUrl?: string;
   ySweetUrl?: string;
   documentId?: string;
 }
@@ -37,31 +39,37 @@ const SETTINGS_KEY = 'tasky-settings';
 
 // Validate environment variable URL
 const envSyncUrl = import.meta.env.VITE_SYNC_URL;
-const defaultTokenUrl = envSyncUrl && isValidUrl(envSyncUrl)
+const defaultSyncUrl = envSyncUrl && isValidUrl(envSyncUrl)
   ? envSyncUrl
   : 'http://localhost:8080';
 
 const DEFAULT_SETTINGS: SyncSettings = {
   enabled: false,
-  tokenUrl: defaultTokenUrl,
+  syncUrl: defaultSyncUrl,
 };
 
 /**
  * Migrates legacy settings to current format
  */
-function migrateSettings(settings: LegacySyncSettings): SyncSettings {
-  const { ySweetUrl, documentId, ...current } = settings;
+function migrateSettings(settings: StoredSyncSettings): SyncSettings {
+  const { tokenUrl, ySweetUrl, documentId, ...current } = settings;
+  const migrated: SyncSettings = {
+    ...DEFAULT_SETTINGS,
+    ...current,
+    syncUrl: current.syncUrl ?? tokenUrl ?? DEFAULT_SETTINGS.syncUrl,
+    enabled: current.enabled ?? DEFAULT_SETTINGS.enabled,
+  };
 
   // If migration occurred (legacy fields were present), save cleaned settings
-  if (ySweetUrl !== undefined || documentId !== undefined) {
+  if (tokenUrl !== undefined || ySweetUrl !== undefined || documentId !== undefined) {
     try {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(current));
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(migrated));
     } catch (error) {
       console.error('[Settings] Failed to save migrated settings:', error);
     }
   }
 
-  return current;
+  return migrated;
 }
 
 /**
@@ -71,10 +79,10 @@ export function loadSettings(): SyncSettings {
   try {
     const stored = localStorage.getItem(SETTINGS_KEY);
     if (stored) {
-      const parsed = JSON.parse(stored) as LegacySyncSettings;
+      const parsed = JSON.parse(stored) as StoredSyncSettings;
       // Migrate legacy fields and merge with defaults
       const migrated = migrateSettings(parsed);
-      return { ...DEFAULT_SETTINGS, ...migrated };
+      return migrated;
     }
   } catch (error) {
     console.error('[Settings] Failed to load settings:', error);
@@ -87,9 +95,9 @@ export function loadSettings(): SyncSettings {
  */
 export function saveSettings(settings: SyncSettings): void {
   try {
-    // Validate tokenUrl before saving
-    if (settings.tokenUrl && !isValidUrl(settings.tokenUrl)) {
-      throw new Error(`Invalid sync URL: ${settings.tokenUrl}. Must be a valid http:// or https:// URL.`);
+    // Validate syncUrl before saving
+    if (settings.syncUrl && !isValidUrl(settings.syncUrl)) {
+      throw new Error(`Invalid sync URL: ${settings.syncUrl}. Must be a valid http:// or https:// URL.`);
     }
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   } catch (error) {

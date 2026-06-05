@@ -22,7 +22,6 @@ Y-Sweet backend sync server for multi-device synchronization.
    cd packages/server
    pnpm install
    export YSWEET_URL="http://localhost:8091"
-   export YSWEET_CLIENT_URL="ws://localhost:8091"
    pnpm dev
    ```
 
@@ -45,7 +44,7 @@ docker-compose logs -f
 
 Copy `.env.example` to `.env` and configure:
 
-- `YSWEET_URL` - Y-Sweet server WebSocket URL (default: `ws://localhost:1234`)
+- `YSWEET_URL` - Y-Sweet management API URL (default: `http://localhost:8091`)
 - `PORT` - Token server HTTP port (default: `8092`)
 - `DOCUMENT_ID` - Document identifier (default: `tasky-main`)
 
@@ -66,4 +65,3 @@ For production, configure S3-compatible storage:
 
 - **Y-Sweet Server**: Handles WebSocket connections and document synchronization
 - **Token Server**: Generates client tokens for document access (no auth required for single user)
-

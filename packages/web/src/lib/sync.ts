@@ -128,13 +128,15 @@ class YSweetSyncProvider implements SyncProvider {
   /**
    * Connect to Y-Sweet server
    */
-  public async connect(): Promise<void> {
+  public async connect(resetAttempts = true): Promise<void> {
     if (this.provider || this.connectionState === 'connecting') {
       return;
     }
 
     this.setConnectionState('connecting');
-    this.reconnectAttempts = 0;
+    if (resetAttempts) {
+      this.reconnectAttempts = 0;
+    }
 
     try {
       // Fetch token and connection details from token server
@@ -178,6 +180,10 @@ class YSweetSyncProvider implements SyncProvider {
    * Disconnect from Y-Sweet server
    */
   public disconnect(): void {
+    this.disconnectProvider(true);
+  }
+
+  private disconnectProvider(resetAttempts: boolean): void {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
@@ -193,7 +199,9 @@ class YSweetSyncProvider implements SyncProvider {
     }
 
     this.setConnectionState('disconnected');
-    this.reconnectAttempts = 0;
+    if (resetAttempts) {
+      this.reconnectAttempts = 0;
+    }
   }
 
   /**
@@ -219,8 +227,8 @@ class YSweetSyncProvider implements SyncProvider {
    * Reconnect to Y-Sweet server
    */
   public async reconnect(): Promise<void> {
-    this.disconnect();
-    await this.connect();
+    this.disconnectProvider(false);
+    await this.connect(false);
   }
 }
 
@@ -239,5 +247,5 @@ export function createYSweetProvider(
  */
 export function isSyncEnabled(): boolean {
   const settings = getSyncSettings();
-  return settings.enabled && !!settings.tokenUrl;
+  return settings.enabled && !!settings.syncUrl;
 }
